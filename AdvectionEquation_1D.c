@@ -6,6 +6,11 @@
 /*
 1D Linear Advection using finite volume method
 With implimentation of slope limiters
+
+
+TODO move each section to it's own function
+TODO add slopelimiters to header files
+
 */
 
 double slopeLimiter(double sigma);    //declare the slope limiter function
