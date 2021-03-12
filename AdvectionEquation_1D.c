@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include "SlopeLimiters.h"
 
 /*
 1D Linear Advection using finite volume method
