@@ -4,7 +4,7 @@
 #include <math.h>
 
 /*
-Burgers Equation using finite volume method
+1D Linear Advection using finite volume method
 With implimentation of slope limiters
 */
 
@@ -16,7 +16,7 @@ int main ()
 {   
     //create and open a file in write mode to store the initial conditian
     FILE *initial_file = NULL;
-    initial_file = fopen("Burgers_1D_results/BurgersInitial.txt", "w");
+    initial_file = fopen("LinearAdvection_1D_results/LinearAdvectionInitial.txt", "w");
 
     // declare starting variables
     int gridSize = 50;   //size of grid
@@ -38,7 +38,7 @@ int main ()
     double initialConditions[gridSize];
     
     /*
-    Either populates the initial conditions with a height of 2 between 0 and 0.3
+    Populates the grid with initial conditions of height 2
     everywhere else gets a height of 1
     or populates the grid with a sin curve
     */
@@ -47,7 +47,7 @@ int main ()
         //sets the initial conditions to one wavelength of sin
         //arraySolution[i] = sin(2 * i / (gridSize / M_PI));
                 
-        if (i * gridSpacing >= 0.3 && i * gridSpacing <= 0.8)
+        if (i*gridSpacing >= 0.3 && i*gridSpacing <= 0.9)
             arraySolution[i] = 2;
         else
             arraySolution[i] = 1;
@@ -65,7 +65,7 @@ int main ()
 
     //do the math that does the thing
     //loop for all evolutions
-    //loop for all grids
+    //loop for all grid points
     //calculate next value at that gridpoint
     for (int i = 0; i < evolutions; i++)
     {
@@ -77,13 +77,13 @@ int main ()
         char buffer[64]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 64, "Burgers_1D_results/BurgersSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 64, "LinearAdvection_1D_results/LinearAdvectionSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
         for (int j = 2; j < gridSize-1; j++)
         {
-            //Burgers
+            //For the size of the grid, calculate the 2nd order of the Linear Advection Equation
             if (arraySolution[j] > 0)
                 //uses the minmod slope limiter to calculate the values for sigma and sigma-1
                 minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
@@ -126,8 +126,8 @@ int main ()
         }
     }
     printf("grid Spacing: %f\n", gridSpacing);
-    printf("evolutions: %f\n", evolutions);
     printf("time step size: %f\n", timestepSize);
+    printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
 
     return EXIT_SUCCESS;
