@@ -6,12 +6,13 @@ use in differential equations
 
 
 
-void minmod(double a, double b, double c)
+void minmod(double a, double b, double c, double d)
 {   
     /*
     a is j-1
     b is j
     c is j+1
+    d is j-2
     */
 
     double minmod_a;
@@ -32,8 +33,8 @@ void minmod(double a, double b, double c)
     else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
         sigma = minmod_b;
 
-    minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
-    minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+    minmod_a_L = (a - arrayTemp[j-2])/gridSpacing;
+    minmod_b_L = (b - a)/gridSpacing;
 
     if(minmod_a_L * minmod_b_L < 0)
         sigma_L = 0;
@@ -50,8 +51,8 @@ void minmod(double a, double b, double c)
     double sigma;
     double sigma_L;
 
-    minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
-    minmod_b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing;
+    minmod_a = (b - a)/gridSpacing;
+    minmod_b = (arrayTemp[j+1] - b)/gridSpacing;
 
     if(minmod_a * minmod_b < 0)
         sigma = 0;
@@ -60,8 +61,8 @@ void minmod(double a, double b, double c)
     else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
         sigma = minmod_b;
 
-    minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
-    minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+    minmod_a_L = (a - arrayTemp[j-2])/gridSpacing;
+    minmod_b_L = (b - a)/gridSpacing;
 
     if(minmod_a_L * minmod_b_L < 0)
         sigma_L = 0;
