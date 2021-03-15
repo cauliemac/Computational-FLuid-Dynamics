@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-//#include "SlopeLimiters.h"
+#include "SlopeLimiters.h"
 
 /*
-1D Burgers Equation using finite volume method
+1D Linear Advection using finite volume method
 With implimentation of slope limiters
 
 
@@ -17,11 +17,12 @@ TODO add slopelimiters to header files
 double slopeLimiter(double sigma);    //declare the slope limiter function
 double slopeLimiter_L(double sigma);
 
+
 int main ()
 {   
     //create and open a file in write mode to store the initial conditian
     FILE *initial_file = NULL;
-    initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
+    initial_file = fopen("LinearAdvection_1D_results/LinearAdvectionInitial.txt", "w");
 
     // declare starting variables
     int gridSize = 50;   //size of grid
@@ -82,11 +83,11 @@ int main ()
         char buffer[64]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 64, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 64, "LinearAdvection_1D_results/LinearAdvectionSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
-        for (int j = 1; j < gridSize-1; j++)
+        for (int j = 2; j < gridSize-1; j++)
         {
             //For the size of the grid, calculate the 2nd order of the Linear Advection Equation
             if (arraySolution[j] > 0)
@@ -113,7 +114,7 @@ int main ()
 
                 // calculates next value
                 //arraySolution[j] = arrayTemp[j] - (timestepSize/gridSpacing) * ((0.5 * pow(arrayTemp[j], 2) - (0.5 * pow(arrayTemp[j-1], 2))));
-                arraySolution[j] = arrayTemp[j] - courant * c * (arrayTemp[j] - arrayTemp[j-1]) - 0.5 * c * courant * (gridSpacing - timestepSize)*(sigma - sigma_L);
+                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(sigma - sigma_L);
 
             //for negative velocity
             //TODO this needs fixed. Else function broken
