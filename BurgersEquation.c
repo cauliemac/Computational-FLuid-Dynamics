@@ -32,11 +32,18 @@ int main ()
     int c = 1; //speed of equation 1 for simple
     double courant = timestepSize/ gridSpacing; //Cournant number for printout
     double minmod_a;
+    double MC_ratio_L;
     double minmod_b;
     double minmod_b_L;
     double minmod_a_L;
     double sigma;
     double sigma_L;
+
+    double MC_ratio;
+    double min_a;
+    double min_b;
+    double min_a_L;
+    double min_b_L;
 
     //Create 3 arrays to store the solutions and the intitial conditions
     double arraySolution[gridSize];
@@ -92,25 +99,21 @@ int main ()
             //For the size of the grid, calculate the result of the 2nd order Burgers Equation
             if (arraySolution[j] > 0)
                 //uses the minmod slope limiter to calculate the values for sigma and sigma-1
-                minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
-                minmod_b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing;
+                MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
 
-                if(minmod_a * minmod_b < 0)
-                    sigma = 0;
-                else if (abs(minmod_a) < abs(minmod_b) && minmod_a * minmod_b > 0)
-                    sigma = minmod_a;
-                else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
-                    sigma = minmod_b;
+                //if (2*MC_ratio < 2 && 2*MC_ratio < 0.5*(1+MC_ratio))
 
-                minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
-                minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+                min_a = fmin(2*MC_ratio, 0.5*(1+MC_ratio));
+                min_b = fmin(0.5*(1+MC_ratio),2);
 
-                if(minmod_a_L * minmod_b_L < 0)
-                    sigma_L = 0;
-                else if (abs(minmod_a_L) < abs(minmod_b_L) && minmod_a_L * minmod_b_L > 0)
-                    sigma_L = minmod_a_L;
-                else if (abs(minmod_b_L) < abs(minmod_a_L) && minmod_a_L * minmod_b_L > 0)
-                    sigma_L = minmod_b_L;
+                sigma = fmax(0, fmin(min_a,min_b));
+
+                MC_ratio_L = (arrayTemp[j-1] - arrayTemp[j-2])/(arrayTemp[j] - arrayTemp[j-1]);
+
+                min_a_L = fmin(2*MC_ratio_L, 2);
+                min_b_L = fmin(2*MC_ratio_L, 0.5*(1+MC_ratio_L));
+
+                sigma_L = fmax(0, fmin(min_a_L, min_b_L));
 
                 // calculates next value
                 //arraySolution[j] = arrayTemp[j] - (timestepSize/gridSpacing) * ((0.5 * pow(arrayTemp[j], 2) - (0.5 * pow(arrayTemp[j-1], 2))));
