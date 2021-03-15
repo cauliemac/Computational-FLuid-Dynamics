@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "SlopeLimiters.h"
+//#include "SlopeLimiters.h"
 
 /*
-1D Linear Advection using finite volume method
+1D Burgers Equation using finite volume method
 With implimentation of slope limiters
 
 
@@ -22,13 +22,13 @@ int main ()
 {   
     //create and open a file in write mode to store the initial conditian
     FILE *initial_file = NULL;
-    initial_file = fopen("LinearAdvection_1D_results/LinearAdvectionInitial.txt", "w");
+    initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
 
     // declare starting variables
     int gridSize = 50;   //size of grid
     double gridSpacing = 2.0 / (gridSize );   //grid spacing ( also h)
     double evolutions = 100;  //number of evolutions
-    double timestepSize = 0.03;  //size of each timestep ( also k)
+    double timestepSize = 0.01;  //size of each timestep ( also k)
     int c = 1; //speed of equation 1 for simple
     double courant = timestepSize/ gridSpacing; //Cournant number for printout
     double minmod_a;
@@ -83,13 +83,13 @@ int main ()
         char buffer[64]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 64, "LinearAdvection_1D_results/LinearAdvectionSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 64, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
         for (int j = 2; j < gridSize-1; j++)
         {
-            //For the size of the grid, calculate the 2nd order of the Linear Advection Equation
+            //For the size of the grid, calculate the result of the 2nd order Burgers Equation
             if (arraySolution[j] > 0)
                 //uses the minmod slope limiter to calculate the values for sigma and sigma-1
                 minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
@@ -187,4 +187,26 @@ double ratio(double cell_L, double cell_R)
 
         return ratio;
     }
+*/
+
+/*
+                minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+                minmod_b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing;
+
+                if(minmod_a * minmod_b < 0)
+                    sigma = 0;
+                else if (abs(minmod_a) < abs(minmod_b) && minmod_a * minmod_b > 0)
+                    sigma = minmod_a;
+                else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
+                    sigma = minmod_b;
+
+                minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
+                minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+
+                if(minmod_a_L * minmod_b_L < 0)
+                    sigma_L = 0;
+                else if (abs(minmod_a_L) < abs(minmod_b_L) && minmod_a_L * minmod_b_L > 0)
+                    sigma_L = minmod_a_L;
+                else if (abs(minmod_b_L) < abs(minmod_a_L) && minmod_a_L * minmod_b_L > 0)
+                    sigma_L = minmod_b_L;
 */
