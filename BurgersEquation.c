@@ -5,7 +5,7 @@
 //#include "SlopeLimiters.h"
 
 /*
-1D Burgers Equation using finite volume method
+1D Invisid Burgers Equation using finite volume method
 With implimentation of slope limiters
 
 
