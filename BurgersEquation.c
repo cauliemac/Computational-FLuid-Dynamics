@@ -14,8 +14,62 @@ TODO add slopelimiters to header files
 
 */
 
+// declare starting variables
+
+#define gridSize 50 //size of grid
+
+const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
+const double evolutions = 100;  //number of evolutions
+const double timestepSize = 0.01;  //size of each timestep ( also k)
+int c = 1; //speed of equation 1 for simple
+double courant = timestepSize/ gridSpacing; //Cournant number for printout
+double minmod_a;
+double MC_ratio_L;
+double minmod_b;
+double minmod_b_L;
+double minmod_a_L;
+double sigma;
+double sigma_L;
+double MC_ratio;
+double min_a;
+double min_b;
+double min_a_L;
+double min_b_L;
+
+double arraySolution[gridSize];
+double arrayTemp[gridSize];
+
+
+
 double slopeLimiter(double sigma);    //declare the slope limiter function
 double slopeLimiter_L(double sigma);
+
+double getInitialConditions(); //gives an initial conditions array
+
+/*
+populates the grid between a and b (as a percent) with the height 2.
+Or returns a sine wave if sine = 1
+*/
+double getInitialConditions(gridSize, int a, int b, int sine)
+{
+    double initialConditions[gridSize];
+    if (sine == 1)
+        for (int i=0; i<gridSize; i++)
+        {
+            initialConditions[i] = sin(2*i/(gridSize/M_PI));
+        }
+
+    else
+       for (int i=0; i<gridSize; i++)
+        {                
+            if (i/a > 1 && i/b < 1)
+                initialConditions[i] = 2;
+            else
+                initialConditions[i] = 1;
+        }
+    
+    return initialConditions;
+}
 
 
 int main ()
@@ -23,27 +77,6 @@ int main ()
     //create and open a file in write mode to store the initial conditian
     FILE *initial_file = NULL;
     initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
-
-    // declare starting variables
-    int gridSize = 50;   //size of grid
-    double gridSpacing = 2.0 / (gridSize );   //grid spacing ( also h)
-    double evolutions = 100;  //number of evolutions
-    double timestepSize = 0.01;  //size of each timestep ( also k)
-    int c = 1; //speed of equation 1 for simple
-    double courant = timestepSize/ gridSpacing; //Cournant number for printout
-    double minmod_a;
-    double MC_ratio_L;
-    double minmod_b;
-    double minmod_b_L;
-    double minmod_a_L;
-    double sigma;
-    double sigma_L;
-
-    double MC_ratio;
-    double min_a;
-    double min_b;
-    double min_a_L;
-    double min_b_L;
 
     //Create 3 arrays to store the solutions and the intitial conditions
     double arraySolution[gridSize];
@@ -55,6 +88,8 @@ int main ()
     everywhere else gets a height of 1
     or populates the grid with a sin curve
     */
+
+    /*
     for (int i = 0; i < gridSize; i++)
     {
         //sets the initial conditions to one wavelength of sin
@@ -66,7 +101,10 @@ int main ()
             arraySolution[i] = 1;
     }
 
-    //memcpy to copy initial conditioan onto the solution array
+    */
+    getInitialConditions(gridSize, 1, 2, 1);
+
+    //memcpy to copy initial conditions onto the solution array
     memcpy(initialConditions, arraySolution, gridSize * sizeof(double));
 
     for (int i = 0; i < gridSize; i++)
