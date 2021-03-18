@@ -75,6 +75,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
     return *initialConditions;
 }
 
+//Calls the Monotonized Central Slope Limiter
 double slopeLimiter(double *arrayTemp, int j)
 {
     //Monotonized Central Slope Limiter
@@ -127,37 +128,16 @@ int main ()
         {
             //For the size of the grid, calculate the result of the 2nd order Burgers Equation
             if (arraySolution[j] > 0)
-                
-                /*//uses the minmod slope limiter to calculate the values for sigma and sigma-1
-                MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
 
-                //if (2*MC_ratio < 2 && 2*MC_ratio < 0.5*(1+MC_ratio))
-
-                min_a = fmin(2*MC_ratio, 0.5*(1+MC_ratio));
-                min_b = fmin(0.5*(1+MC_ratio),2);
-
-                sigma = fmax(0, fmin(min_a,min_b));
-
-                MC_ratio_L = (arrayTemp[j-1] - arrayTemp[j-2])/(arrayTemp[j] - arrayTemp[j-1]);
-
-                min_a_L = fmin(2*MC_ratio_L, 2);
-                min_b_L = fmin(2*MC_ratio_L, 0.5*(1+MC_ratio_L));
-
-                sigma_L = fmax(0, fmin(min_a_L, min_b_L));
-                */
-
-                // calculates next value
-                //arraySolution[j] = arrayTemp[j] - (timestepSize/gridSpacing) * ((0.5 * pow(arrayTemp[j], 2) - (0.5 * pow(arrayTemp[j-1], 2))));
-                //arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(sigma - sigma_L);
+                // calculates next value of the array solution
                 arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter(arrayTemp,j));
 
             //for negative velocity
-            //TODO this needs fixed. Else function broken
-            /*
+            //TODO this needs fixed. not calculation upwind correctly
             else
-                //next value
-                arraySolution[j] = arrayTemp[j] - (timestepSize / gridSpacing) * (((0.5 * pow(arrayTemp[j + 1], 2)) - (0.5 * pow(arrayTemp[j], 2))));
-            */
+                //calculates next value of the array solution
+                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j + 1], 2) - 0.5 * pow(arrayTemp[j], 2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter(arrayTemp, j+1)) ;
+            
             
             //uncomment below to print values to console
             //printf("%f\n", arraySolution[j])
