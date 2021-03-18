@@ -17,7 +17,6 @@ TODO add slopelimiters to header files
 // declare starting variables
 
 #define gridSize 50 //size of grid
-
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 100;  //number of evolutions
 const double timestepSize = 0.01;  //size of each timestep ( also k)
@@ -52,7 +51,7 @@ Or returns a sine wave if sine = 1
 */
 double getInitialConditions(gridSize, int a, int b, int sine)
 {
-    double initialConditions[gridSize];
+    double** initialConditions[gridSize];
     if (sine == 1)
         for (int i=0; i<gridSize; i++)
         {
