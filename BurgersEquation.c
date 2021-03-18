@@ -35,6 +35,7 @@ double min_b;
 double min_a_L;
 double min_b_L;
 
+//creates 3 arrays to hold the grid values
 double arraySolution[gridSize];
 double arrayTemp[gridSize];
 double initialConditions[gridSize];
