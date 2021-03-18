@@ -37,81 +37,73 @@ double min_b_L;
 
 double arraySolution[gridSize];
 double arrayTemp[gridSize];
+double initialConditions[gridSize];
 
 
-
-double slopeLimiter(double sigma);    //declare the slope limiter function
+double slopeLimiter(double *arrayTemp, int j);    //declare the slope limiter function
 double slopeLimiter_L(double sigma);
 
-double getInitialConditions(); //gives an initial conditions array
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
 
-/*
-populates the grid between a and b (as a percent) with the height 2.
-Or returns a sine wave if sine = 1
-*/
-double getInitialConditions(gridSize, int a, int b, int sine)
+//gives an initial conditions array with a square or sine wave (if sine == 1)
+double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
-    double** initialConditions[gridSize];
+    //create and open a file in write mode to store the initial conditions
+    FILE *initial_file = NULL;
+    initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
+
+    //populates array with one wavelength sine wave
     if (sine == 1)
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
+            fprintf(initial_file, "%f\n", initialConditions[i] );
         }
 
     else
+        //populates the area between a and b as percentages of the grid with height 2
        for (int i=0; i<gridSize; i++)
         {                
-            if (i/a > 1 && i/b < 1)
+            if (i/gridSize > a/100 && i/gridSize < b/100)   
                 initialConditions[i] = 2;
             else
                 initialConditions[i] = 1;
+            
+            fprintf(initial_file, "%f\n", initialConditions[i] );
         }
-    
-    return initialConditions;
+
+    return *initialConditions;
 }
 
+double slopeLimiter(double *arrayTemp, int j)
+{
+    //Monotonized Central Slope Limiter
+    MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
+
+    //if (2*MC_ratio < 2 && 2*MC_ratio < 0.5*(1+MC_ratio))
+
+    min_a = fmin(2*MC_ratio, 0.5*(1+MC_ratio));
+    min_b = fmin(0.5*(1+MC_ratio),2);
+
+    sigma = fmax(0, fmin(min_a,min_b));
+
+    MC_ratio_L = (arrayTemp[j-1] - arrayTemp[j-2])/(arrayTemp[j] - arrayTemp[j-1]);
+
+    min_a_L = fmin(2*MC_ratio_L, 2);
+    min_b_L = fmin(2*MC_ratio_L, 0.5*(1+MC_ratio_L));
+
+    sigma_L = fmax(0, fmin(min_a_L, min_b_L));
+
+    return sigma - sigma_L;
+}
 
 int main ()
 {   
-    //create and open a file in write mode to store the initial conditian
-    FILE *initial_file = NULL;
-    initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
-
-    //Create 3 arrays to store the solutions and the intitial conditions
-    double arraySolution[gridSize];
-    double arrayTemp[gridSize];
-    double initialConditions[gridSize];
-    
-    /*
-    Populates the grid with initial conditions of height 2
-    everywhere else gets a height of 1
-    or populates the grid with a sin curve
-    */
-
-    /*
-    for (int i = 0; i < gridSize; i++)
-    {
-        //sets the initial conditions to one wavelength of sin
-        //arraySolution[i] = sin(2 * i / (gridSize / M_PI));
-                
-        if (i*gridSpacing >= 0.3 && i*gridSpacing <= 0.9)
-            arraySolution[i] = 2;
-        else
-            arraySolution[i] = 1;
-    }
-
-    */
-    getInitialConditions(gridSize, 1, 2, 1);
+    //calls the initial conditions function
+    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
 
     //memcpy to copy initial conditions onto the solution array
-    memcpy(initialConditions, arraySolution, gridSize * sizeof(double));
-
-    for (int i = 0; i < gridSize; i++)
-    {
-        //print the initial conditians to file
-        fprintf(initial_file, "%f\n", initialConditions[i] );
-    }
-
+    memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
 
     //do the math that does the thing
     //loop for all evolutions
@@ -135,7 +127,8 @@ int main ()
         {
             //For the size of the grid, calculate the result of the 2nd order Burgers Equation
             if (arraySolution[j] > 0)
-                //uses the minmod slope limiter to calculate the values for sigma and sigma-1
+                
+                /*//uses the minmod slope limiter to calculate the values for sigma and sigma-1
                 MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
 
                 //if (2*MC_ratio < 2 && 2*MC_ratio < 0.5*(1+MC_ratio))
@@ -151,10 +144,12 @@ int main ()
                 min_b_L = fmin(2*MC_ratio_L, 0.5*(1+MC_ratio_L));
 
                 sigma_L = fmax(0, fmin(min_a_L, min_b_L));
+                */
 
                 // calculates next value
                 //arraySolution[j] = arrayTemp[j] - (timestepSize/gridSpacing) * ((0.5 * pow(arrayTemp[j], 2) - (0.5 * pow(arrayTemp[j-1], 2))));
-                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(sigma - sigma_L);
+                //arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(sigma - sigma_L);
+                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter(arrayTemp,j));
 
             //for negative velocity
             //TODO this needs fixed. Else function broken

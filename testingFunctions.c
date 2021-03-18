@@ -7,8 +7,10 @@
 double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 double initialConditions[gridSize];
 
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); //gives an initial conditions array
 
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
+
+//gives an initial conditions array with a square or sine wave
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     if (sine == 1)
@@ -18,9 +20,10 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
         }
 
     else
+        //populates the area between a and b as percentages of the grid with height 2
        for (int i=0; i<gridSize; i++)
         {                
-            if (i/a > 1 && i/b < 1)
+            if (i/gridSize > a/100 && i/gridSize < b/100)   
                 initialConditions[i] = 2;
             else
                 initialConditions[i] = 1;
@@ -31,7 +34,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 
 int main()
 {
-    double a = getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+    double a = getInitialConditions(initialConditions, gridSize, 10, 60, 0);
     for(int i = 0; i< gridSize;i++)
     {
         printf("%f\n",initialConditions[i]);
