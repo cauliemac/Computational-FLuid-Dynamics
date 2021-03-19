@@ -8,43 +8,30 @@
 1D Invisid Burgers Equation using finite volume method
 With implimentation of slope limiters
 
-
-TODO move each section to it's own function
 TODO add slopelimiters to header files
 
 */
 
 // declare starting variables
 
-#define gridSize 50 //size of grid
+#define gridSize 500 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
-const double evolutions = 100;  //number of evolutions
-const double timestepSize = 0.01;  //size of each timestep ( also k)
-int c = 1; //speed of equation 1 for simple
+const double evolutions = 1000;  //number of evolutions
+const double timestepSize = 0.002;  //size of each timestep ( also k)
 double courant = timestepSize/ gridSpacing; //Cournant number for printout
-double minmod_a;
-double MC_ratio_L;
-double minmod_b;
-double minmod_b_L;
-double minmod_a_L;
-double sigma;
-double sigma_L;
-double MC_ratio;
-double min_a;
-double min_b;
-double min_a_L;
-double min_b_L;
+
 
 //creates 3 arrays to hold the grid values
 double arraySolution[gridSize];
 double arrayTemp[gridSize];
 double initialConditions[gridSize];
 
-
-double slopeLimiter(double *arrayTemp, int j);    //declare the slope limiter function
-double slopeLimiter_L(double sigma);
-
+//declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
+double slopeLimiter_MC(double *arrayTemp, int j);
+double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
+double BurgersEquation(double *arrayTemp, int j, int k);
+
 
 //gives an initial conditions array with a square or sine wave (if sine == 1)
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
@@ -73,12 +60,29 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
             fprintf(initial_file, "%f\n", initialConditions[i] );
         }
 
+    //memcpy to copy initial conditions onto the solution array
+    memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
+
     return *initialConditions;
 }
 
 //Calls the Monotonized Central Slope Limiter
-double slopeLimiter(double *arrayTemp, int j)
+double slopeLimiter_MC(double *arrayTemp, int j)
 {
+    //declare variables
+    double minmod_a;
+    double MC_ratio_L;
+    double minmod_b;
+    double minmod_b_L;
+    double minmod_a_L;
+    double sigma;
+    double sigma_L;
+    double MC_ratio;
+    double min_a;
+    double min_b;
+    double min_a_L;
+    double min_b_L;
+    
     //Monotonized Central Slope Limiter
     MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
 
@@ -99,18 +103,15 @@ double slopeLimiter(double *arrayTemp, int j)
     return sigma - sigma_L;
 }
 
-int main ()
-{   
-    //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+//k is to take the place of j+1 for upwind negative value (downwind) sections
+double BurgersEquation(double *arrayTemp, int j, int k)
+{
+    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+    return solution;
+}
 
-    //memcpy to copy initial conditions onto the solution array
-    memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
-
-    //do the math that does the thing
-    //loop for all evolutions
-    //loop for all grid points
-    //calculate next value at that gridpoint
+double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing)
+{
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
@@ -118,10 +119,10 @@ int main ()
 
         //changes file name with evolution cycle.
         FILE *fpointer = NULL;
-        char buffer[64]; // The filename buffer.
+        char buffer[128]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 64, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 128, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
@@ -131,14 +132,13 @@ int main ()
             if (arraySolution[j] > 0)
 
                 // calculates next value of the array solution
-                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j],2) - 0.5*pow(arrayTemp[j-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter(arrayTemp,j));
+                arraySolution[j] = BurgersEquation(arrayTemp, j, j);
 
             //for negative velocity
-            //TODO this needs fixed. not calculation upwind correctly
+            //TODO this needs fixed. not calculating downwind correctly
             else
                 //calculates next value of the array solution
-                arraySolution[j] = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[j + 1], 2) - 0.5 * pow(arrayTemp[j], 2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter(arrayTemp, j+1)) ;
-            
+                arraySolution[j] = BurgersEquation(arrayTemp, j, j+1);
             
             //uncomment below to print values to console
             //printf("%f\n", arraySolution[j])
@@ -147,6 +147,18 @@ int main ()
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
         }
     }
+}
+
+
+int main ()
+{   
+    //calls the initial conditions function
+    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+
+    //call AllEvolutions to run
+    AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
+   
+    //print some useful info to the console
     printf("grid Spacing: %f\n", gridSpacing);
     printf("time step size: %f\n", timestepSize);
     printf("evolutions: %f\n", evolutions);
@@ -154,75 +166,3 @@ int main ()
 
     return EXIT_SUCCESS;
 }
-
-/*
-//GET THESE WORKING TO TIDY UP CODE
-double slopeLimiter(double sigma)   //minmod
-    {
-        double a;
-        double b;
-
-        a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing);
-        b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing);
-        
-        result_Q = ;
-        
-        
-        if (result_Q > fmax(a,b))
-            result_Q = fmax(a,b);
-        
-        return result_Q;
-    }
-
-double slopeLimiter_L(double sigma)
-    {
-        double result_Q;
-        
-        double theta = ratio(a,b);
-
-
-
-        result_Q = ;
-        
-        
-        if (result_Q > fmax(a,b))
-            result_Q = fmax(a,b);
-        
-        return result_Q;
-    }
-*/
-
-//returns the ratio of the slopes from the cells
-//to the right and left of a cell
-/*
-double ratio(double cell_L, double cell_R)
-    {
-        double ratio;
-
-        ratio = (cell_R - cell_L)/(cell_L - cell_R);
-
-        return ratio;
-    }
-*/
-
-/*
-                minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
-                minmod_b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing;
-
-                if(minmod_a * minmod_b < 0)
-                    sigma = 0;
-                else if (abs(minmod_a) < abs(minmod_b) && minmod_a * minmod_b > 0)
-                    sigma = minmod_a;
-                else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
-                    sigma = minmod_b;
-
-                minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
-                minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
-
-                if(minmod_a_L * minmod_b_L < 0)
-                    sigma_L = 0;
-                else if (abs(minmod_a_L) < abs(minmod_b_L) && minmod_a_L * minmod_b_L > 0)
-                    sigma_L = minmod_a_L;
-                else if (abs(minmod_b_L) < abs(minmod_a_L) && minmod_a_L * minmod_b_L > 0)
-                    sigma_L = minmod_b_L;
-*/
