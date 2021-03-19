@@ -119,10 +119,10 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
 
         //changes file name with evolution cycle.
         FILE *fpointer = NULL;
-        char buffer[128]; // The filename buffer.
+        char buffer[256]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 128, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 256, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
@@ -146,6 +146,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
         }
+    //printf("current evolutions is %i", i);
     }
 }
 
