@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-//#include "SlopeLimiters.h"
+#include "SlopeLimiters.h"
 
 /*
 1D Invisid Burgers Equation using finite volume method
@@ -28,7 +28,7 @@ double initialConditions[gridSize];
 
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
-double slopeLimiter_MC(double *arrayTemp, int j);
+//double slopeLimiter_MC(double *arrayTemp, int j);
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
 
@@ -115,7 +115,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
-        memcpy(arrayTemp, arraySolution, gridSize*sizeof(double));
+        memcpy(arrayTemp, arraySolution, gridSize*sizeof(double));  
 
         //changes file name with evolution cycle.
         FILE *fpointer = NULL;
