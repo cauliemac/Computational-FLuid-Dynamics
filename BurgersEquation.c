@@ -7,9 +7,6 @@
 /*
 1D Invisid Burgers Equation using finite volume method
 With implimentation of slope limiters
-
-TODO add slopelimiters to header files
-
 */
 
 // declare starting variables
@@ -28,10 +25,8 @@ double initialConditions[gridSize];
 
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
-//double slopeLimiter_MC(double *arrayTemp, int j);
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
-
 
 //gives an initial conditions array with a square or sine wave (if sine == 1)
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
@@ -57,7 +52,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
             else
                 initialConditions[i] = 1;
             
-            fprintf(initial_file, "%f\n", initialConditions[i] );
+            fprintf(initial_file, "%f\n", initialConditions[i]);
         }
 
     //memcpy to copy initial conditions onto the solution array
@@ -66,49 +61,24 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
     return *initialConditions;
 }
 
-//Calls the Monotonized Central Slope Limiter
-double slopeLimiter_MC(double *arrayTemp, int j)
-{
-    //declare variables
-    double minmod_a;
-    double MC_ratio_L;
-    double minmod_b;
-    double minmod_b_L;
-    double minmod_a_L;
-    double sigma;
-    double sigma_L;
-    double MC_ratio;
-    double min_a;
-    double min_b;
-    double min_a_L;
-    double min_b_L;
-    
-    //Monotonized Central Slope Limiter
-    MC_ratio = (arrayTemp[j] - arrayTemp[j-1])/(arrayTemp[j+1] - arrayTemp[j]);
-
-    //if (2*MC_ratio < 2 && 2*MC_ratio < 0.5*(1+MC_ratio))
-
-    min_a = fmin(2*MC_ratio, 0.5*(1+MC_ratio));
-    min_b = fmin(0.5*(1+MC_ratio),2);
-
-    sigma = fmax(0, fmin(min_a,min_b));
-
-    MC_ratio_L = (arrayTemp[j-1] - arrayTemp[j-2])/(arrayTemp[j] - arrayTemp[j-1]);
-
-    min_a_L = fmin(2*MC_ratio_L, 2);
-    min_b_L = fmin(2*MC_ratio_L, 0.5*(1+MC_ratio_L));
-
-    sigma_L = fmax(0, fmin(min_a_L, min_b_L));
-
-    return sigma - sigma_L;
-}
-
 //k is to take the place of j+1 for upwind negative value (downwind) sections
+//for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j, int k)
 {
-    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
     return solution;
 }
+
+//picks a slope limiter from a list in SlopeLimiters.c
+//TODO get slope limiter picker working
+/*
+int chooseSlopeLimiter(int n);
+{
+    if (n = 1)
+
+
+}
+*/
 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing)
 {
@@ -148,8 +118,8 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         }
     //printf("current evolutions is %i", i);
     }
+    return 0;
 }
-
 
 int main ()
 {   
