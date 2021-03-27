@@ -92,3 +92,8 @@ double slopeLimiter_vanAlbada1(double *arrayTemp, int j)
 
     return sigma - sigma_L;
 }
+
+double slopeLimiter_LaxWendoff(double *arrayTemp, int j)
+{
+    double sigma
+}
