@@ -7,6 +7,9 @@
 /*
 1D Invisid Burgers Equation using finite volume method
 With implimentation of slope limiters
+
+g++ BurgersEquation.c SlopeLimiters.c -o BurgersEquation
+use above to compile
 */
 
 // declare starting variables
@@ -16,6 +19,7 @@ const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 1000;  //number of evolutions
 const double timestepSize = 0.002;  //size of each timestep ( also k)
 double courant = timestepSize/ gridSpacing; //Cournant number for printout
+//not exactly courant number, should be (max wave speed * timestep)/ groidSpacing
 
 
 //creates 3 arrays to hold the grid values
