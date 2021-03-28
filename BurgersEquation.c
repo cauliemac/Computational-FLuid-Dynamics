@@ -72,14 +72,24 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
 
 double RiemannSolver(double *arrayTemp, int j)
 {
-    return (arrayTemp[j] + arrayTemp[j+1])/2
+    double Riemann;
+    if (arrayTemp[j] > 0)
+    {
+        double Riemann = (arrayTemp[j] + arrayTemp[j+1])/2;
+    }
+    else
+    {
+        double Riemann = (arrayTemp[j] + arrayTemp[j-1])/2;
+    }
+    
+    return Riemann;
 }
 
 //k is to take the place of j+1 for upwind negative value (downwind) sections
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j, int k)
 {
-    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
+    double solution = arrayTemp[j] - courant * (0.5 * pow(RiemannSolver(arrayTemp,j),2) - 0.5*pow(RiemannSolver(arrayTemp,k-1),2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
     return solution;
 }
 
