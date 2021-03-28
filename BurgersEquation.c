@@ -31,6 +31,7 @@ double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
+double RiemannSolver(double *arrayTemp, int j);
 
 //TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
@@ -67,6 +68,11 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
     memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
 
     return *initialConditions;
+}
+
+double RiemannSolver(double *arrayTemp, int j)
+{
+    return (arrayTemp[j] + arrayTemp[j+1])/2
 }
 
 //k is to take the place of j+1 for upwind negative value (downwind) sections
