@@ -89,7 +89,7 @@ double RiemannSolver(double *arrayTemp, int j)
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j, int k)
 {
-    double solution = arrayTemp[j] - courant * (0.5 * pow(RiemannSolver(arrayTemp,j),2) - 0.5*pow(RiemannSolver(arrayTemp,k-1),2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
+    double solution = arrayTemp[j] - courant * (0.5 * pow(RiemannSolver(arrayTemp,k),2) - 0.5*pow(RiemannSolver(arrayTemp,k-1),2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
     return solution;
 }
 
