@@ -32,6 +32,7 @@ static double getInitialConditions(double *initialConditions, int grid, float a,
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
 
+//TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
 double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine)
 {
