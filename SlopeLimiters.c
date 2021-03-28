@@ -4,6 +4,7 @@
 #include <math.h>
 #include"SlopeLimiters.h"
 
+//Monotonized Central slope limiter
 double slopeLimiter_MC(double *arrayTemp, int j)
 {
     //declare variables
@@ -77,6 +78,7 @@ double slopeLimiter_minmod(double *arrayTemp, int j)
     return sigma - sigma_L;
 }
 
+//Van Albada 1 slope limiter
 double slopeLimiter_vanAlbada1(double *arrayTemp, int j)
 {
     double sigma;
@@ -93,7 +95,9 @@ double slopeLimiter_vanAlbada1(double *arrayTemp, int j)
     return sigma - sigma_L;
 }
 
+//Lax Wendoff slope limiter
 double slopeLimiter_LaxWendoff(double *arrayTemp, int j)
 {
-    double sigma
+    double sigma;
+    double sigma_L;
 }
