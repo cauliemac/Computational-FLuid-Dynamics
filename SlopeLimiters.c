@@ -100,4 +100,5 @@ double slopeLimiter_LaxWendoff(double *arrayTemp, int j)
 {
     double sigma;
     double sigma_L;
+    return 0;
 }

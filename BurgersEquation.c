@@ -14,7 +14,7 @@ use above to compile
 
 // declare starting variables
 
-#define gridSize 500 //size of grid
+#define gridSize 1000 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 1000;  //number of evolutions
 const double timestepSize = 0.002;  //size of each timestep ( also k)
@@ -28,12 +28,12 @@ double arrayTemp[gridSize];
 double initialConditions[gridSize];
 
 //declareing the functions
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
+static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
 
 //gives an initial conditions array with a square or sine wave (if sine == 1)
-double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
+double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_file = NULL;
@@ -52,10 +52,13 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
        for (int i=0; i<gridSize; i++)
         {                
             if (i/gridSize > a/100 && i/gridSize < b/100)   
+            {
                 initialConditions[i] = 2;
+            }
             else
+            {
                 initialConditions[i] = 1;
-            
+            }
             fprintf(initial_file, "%f\n", initialConditions[i]);
         }
 
@@ -119,8 +122,10 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
+            
         }
-    //printf("current evolutions is %i", i);
+        fclose(fpointer);
+        printf("current evolutions is %i\n", i);
     }
     return 0;
 }
