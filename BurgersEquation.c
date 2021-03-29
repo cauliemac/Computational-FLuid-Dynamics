@@ -17,7 +17,7 @@ use above to compile
 #define gridSize 1000 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 1000;  //number of evolutions
-const double timestepSize = 0.002;  //size of each timestep ( also k)
+const double timestepSize = 0.001;  //size of each timestep ( also k)
 double courant = timestepSize/ gridSpacing; //Cournant number for printout
 //not exactly courant number, should be (max wave speed * timestep)/ groidSpacing
 
@@ -89,7 +89,7 @@ double RiemannSolver(double *arrayTemp, int j)
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j, int k)
 {
-    double solution = arrayTemp[j] - courant * (0.5 * pow(RiemannSolver(arrayTemp,k),2) - 0.5*pow(RiemannSolver(arrayTemp,k-1),2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_vanAlbada1(arrayTemp,k));
+    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
     return solution;
 }
 
@@ -142,24 +142,24 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             
         }
         fclose(fpointer);
-        printf("current evolutions is %i\n", i);
+        //printf("current evolutions is %i\n", i);
     }
     return 0;
 }
 
 int main ()
 {   
-    //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
-
-    //call AllEvolutions to run
-    AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
-   
     //print some useful info to the console
     printf("grid Spacing: %f\n", gridSpacing);
     printf("time step size: %f\n", timestepSize);
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
 
+    //calls the initial conditions function
+    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+
+    //call AllEvolutions to run
+    AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
+   
     return EXIT_SUCCESS;
 }
