@@ -70,6 +70,7 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
     return *initialConditions;
 }
 
+//I think I don't need this
 double RiemannSolver(double *arrayTemp, int j)
 {
     double Riemann;
