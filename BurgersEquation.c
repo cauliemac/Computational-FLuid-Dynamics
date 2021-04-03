@@ -70,7 +70,7 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
     return *initialConditions;
 }
 
-//I think I don't need this
+//Take if pos/neg statement from all evolutions
 double RiemannSolver(double *arrayTemp, int j)
 {
     double Riemann;
@@ -90,7 +90,10 @@ double RiemannSolver(double *arrayTemp, int j)
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j, int k)
 {
-    double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+    double Riemann = RiemannSolver(arrayTemp, j);
+    //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+    double solution = arrayTemp[j] - courant * (0.5 * pow(Riemann,2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+ 
     return solution;
 }
 
