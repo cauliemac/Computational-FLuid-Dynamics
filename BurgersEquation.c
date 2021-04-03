@@ -18,8 +18,8 @@ use above to compile
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 1000;  //number of evolutions
 const double timestepSize = 0.001;  //size of each timestep ( also k)
-double courant = timestepSize/ gridSpacing; //Cournant number for printout
-//not exactly courant number, should be (max wave speed * timestep)/ groidSpacing
+double courant = timestepSize/gridSpacing; //Cournant number for printout
+//not exactly courant number, should be (max wave speed * timestep)/ gridSpacing
 
 
 //creates 3 arrays to hold the grid values
@@ -72,16 +72,31 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
 
 
 //Take if pos/neg statement from all evolutions
-double RiemannSolver(double *arrayTemp, int j, int k)
+double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
-    if (arrayTemp[j] < arrayTemp[j-1])
+    if (arrayTemp[Right] > 0 && arrayTemp[Left] > 0)
     {
-        double Riemann = (arrayTemp[j] + arrayTemp[j+1])/2;
+        double Riemann = arrayTemp[Left];
     }
-    else
+    else if (arrayTemp[Right] < 0 && arrayTemp[Left] < 0)
     {
-        double Riemann = (arrayTemp[j] + arrayTemp[j-1])/2;
+        double Riemann = arrayTemp[Right];
+    }
+    else if (arrayTemp[Right] > 0 && arrayTemp[Left] < 0)
+    {
+        double Riemann = 0;
+    }
+    else if (arrayTemp[Right] < 0 && arrayTemp[Left] > 0)
+    {
+        if ((Left + Right)/2 > 0)
+        {
+            double Riemann = arrayTemp[Left];
+        }
+        else if ((Left + Right)/2 < 0)
+        {
+            double Riemann = arrayTemp[Right];
+        }
     }
     
     return Riemann;
@@ -91,10 +106,10 @@ double RiemannSolver(double *arrayTemp, int j, int k)
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j)
 {
-    double Riemann = RiemannSolver(arrayTemp, j);
+    //double Riemann = RiemannSolver(arrayTemp, j);
     //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
     
-    double LeftBoundary = RiemannSolver(arrayTemp, j, j-1);
+    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
 
     double solution = arrayTemp[j] - courant * (0.5 * pow(RightBoundary,2) - 0.5*pow(LeftBoundary,2));
