@@ -31,7 +31,7 @@ double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j, int k);
-double RiemannSolver(double *arrayTemp, int j);
+double RiemannSolver(double *arrayTemp, int j, int k);
 
 //TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
@@ -70,11 +70,12 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
     return *initialConditions;
 }
 
+
 //Take if pos/neg statement from all evolutions
-double RiemannSolver(double *arrayTemp, int j)
+double RiemannSolver(double *arrayTemp, int j, int k)
 {
     double Riemann;
-    if (arrayTemp[j] > 0)
+    if (arrayTemp[j] < arrayTemp[j-1])
     {
         double Riemann = (arrayTemp[j] + arrayTemp[j+1])/2;
     }
@@ -88,11 +89,15 @@ double RiemannSolver(double *arrayTemp, int j)
 
 //k is to take the place of j+1 for upwind negative value (downwind) sections
 //for upwind it is equal to j
-double BurgersEquation(double *arrayTemp, int j, int k)
+double BurgersEquation(double *arrayTemp, int j)
 {
     double Riemann = RiemannSolver(arrayTemp, j);
     //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
-    double solution = arrayTemp[j] - courant * (0.5 * pow(Riemann,2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
+    
+    double LeftBoundary = RiemannSolver(arrayTemp, j, j-1);
+    double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+
+    double solution = arrayTemp[j] - courant * (0.5 * pow(RightBoundary,2) - 0.5*pow(LeftBoundary,2));
  
     return solution;
 }
@@ -126,6 +131,10 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         //calculates the next value of the current cell
         for (int j = 2; j < gridSize-1; j++)
         {
+            
+            arraySolution[j] = BurgersEquation(arrayTemp,j);
+            
+            /*
             //For the size of the grid, calculate the result of the 2nd order Burgers Equation
             if (arraySolution[j] > 0)
 
@@ -140,7 +149,8 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             
             //uncomment below to print values to console
             //printf("%f\n", arraySolution[j])
-            
+            */
+
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
             
