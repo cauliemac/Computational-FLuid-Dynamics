@@ -14,10 +14,10 @@ use above to compile
 
 // declare starting variables
 
-#define gridSize 1000 //size of grid
+#define gridSize 100 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
-const double evolutions = 1000;  //number of evolutions
-const double timestepSize = 0.001;  //size of each timestep ( also k)
+const double evolutions = 100;  //number of evolutions
+const double timestepSize = 0.005;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Cournant number for printout
 //not exactly courant number, should be (max wave speed * timestep)/ gridSpacing
 
@@ -148,23 +148,6 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         {
             
             arraySolution[j] = BurgersEquation(arrayTemp,j);
-            
-            /*
-            //For the size of the grid, calculate the result of the 2nd order Burgers Equation
-            if (arraySolution[j] > 0)
-
-                // calculates next value of the array solution
-                arraySolution[j] = BurgersEquation(arrayTemp, j, j);
-
-            //for negative velocity
-            //TODO this needs fixed. not calculating downwind correctly
-            else
-                //calculates next value of the array solution
-                arraySolution[j] = BurgersEquation(arrayTemp, j, j+1);
-            
-            //uncomment below to print values to console
-            //printf("%f\n", arraySolution[j])
-            */
 
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
