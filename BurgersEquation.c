@@ -30,7 +30,7 @@ double initialConditions[gridSize];
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
-double BurgersEquation(double *arrayTemp, int j, int k);
+double BurgersEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 
 //TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
@@ -109,10 +109,10 @@ double BurgersEquation(double *arrayTemp, int j)
     //double Riemann = RiemannSolver(arrayTemp, j);
     //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
     
-    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
 
-    double solution = arrayTemp[j] - courant * (0.5 * pow(RightBoundary,2) - 0.5*pow(LeftBoundary,2));
+    double solution = arrayTemp[j] - courant * (0.5*pow(RightBoundary,2) - 0.2*pow(LeftBoundary,2));
  
     return solution;
 }
