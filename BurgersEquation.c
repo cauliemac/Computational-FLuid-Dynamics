@@ -32,6 +32,7 @@ static double getInitialConditions(double *initialConditions, int grid, float a,
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double BurgersEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
+double GodunovScheme(double *arrayTemp, int j);
 
 //TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
@@ -76,28 +77,19 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
 
-    if (arrayTemp[Left] > 0 && arrayTemp[Right] > 0)
+    if (arrayTemp[Left] >= arrayTemp[Right])
     {
-        double Riemann = arrayTemp[Left];
+        double Riemann = fmax(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
     }
-    else if (arrayTemp[Left] < 0 && arrayTemp[Right] < 0)
-    {
-        double Riemann = arrayTemp[Right];
-    }
-    else if (arrayTemp[Left] < 0 && arrayTemp[Right] > 0)
+    
+    else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
     {
         double Riemann = 0;
     }
-    else if (arrayTemp[Left] > 0 && arrayTemp[Right] < 0)
+    
+    else
     {
-        if ((Left + Right)/2 > 0)
-        {
-            double Riemann = arrayTemp[Left];
-        }
-        else if ((Left + Right)/2 < 0)
-        {
-            double Riemann = arrayTemp[Right];
-        }
+        double Riemann = fmin(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
     }
     
     //printf("%d\n", arrayTemp[Left]);
@@ -111,12 +103,24 @@ double BurgersEquation(double *arrayTemp, int j)
     //double Riemann = RiemannSolver(arrayTemp, j);
     //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
     
+    //double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+    //double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
+
+    //double solution = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
+
+    double solution = 0.5*pow(arrayTemp[j],2);
+ 
+    return solution;
+}
+
+double GodunovScheme(double *arrayTemp, int j)
+{
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
     double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
 
-    double solution = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
- 
-    return solution;
+    double Godunov = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
+
+    return Godunov;
 }
 
 //picks a slope limiter from a list in SlopeLimiters.c
@@ -149,7 +153,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         for (int j = 2; j < gridSize-1; j++)
         {
             
-            arraySolution[j] = BurgersEquation(arrayTemp,j);
+            arraySolution[j] = GodunovScheme(arrayTemp,j);
 
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
