@@ -173,7 +173,7 @@ int main ()
     printf("Courant number: %f\n", courant);
     
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 30, 60, 0);
+    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
 
     Sleep(2000);
 
