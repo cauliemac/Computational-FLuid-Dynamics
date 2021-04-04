@@ -75,19 +75,20 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
 double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
-    if (arrayTemp[Right] > 0 && arrayTemp[Left] > 0)
+
+    if (arrayTemp[Left] > 0 && arrayTemp[Right] > 0)
     {
         double Riemann = arrayTemp[Left];
     }
-    else if (arrayTemp[Right] < 0 && arrayTemp[Left] < 0)
+    else if (arrayTemp[Left] < 0 && arrayTemp[Right] < 0)
     {
         double Riemann = arrayTemp[Right];
     }
-    else if (arrayTemp[Right] > 0 && arrayTemp[Left] < 0)
+    else if (arrayTemp[Left] < 0 && arrayTemp[Right] > 0)
     {
         double Riemann = 0;
     }
-    else if (arrayTemp[Right] < 0 && arrayTemp[Left] > 0)
+    else if (arrayTemp[Left] > 0 && arrayTemp[Right] < 0)
     {
         if ((Left + Right)/2 > 0)
         {
@@ -99,6 +100,7 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
         }
     }
     
+    //printf("%d\n", arrayTemp[Left]);
     return Riemann;
 }
 
@@ -112,7 +114,7 @@ double BurgersEquation(double *arrayTemp, int j)
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
     double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
 
-    double solution = arrayTemp[j] - courant * (0.5*pow(RightBoundary,2) - 0.2*pow(LeftBoundary,2));
+    double solution = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
  
     return solution;
 }
