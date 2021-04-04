@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include <Windows.h>
 #include "SlopeLimiters.h"
 
 /*
@@ -47,14 +48,14 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
-            fprintf(initial_file, "%f\n", initialConditions[i] );
+            fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
         }
 
     else
         //populates the area between a and b as percentages of the grid with height 2
        for (int i=0; i<gridSize; i++)
         {                
-            if (i/gridSize > a/100 && i/gridSize < b/100)   
+            if (i/gridSize >= a/100 && i/gridSize <= b/100)   
             {
                 initialConditions[i] = 2;
             }
@@ -62,12 +63,15 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
             {
                 initialConditions[i] = 1;
             }
-            fprintf(initial_file, "%f\n", initialConditions[i]);
+            fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
         }
 
     //memcpy to copy initial conditions onto the solution array
     memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
 
+
+    //printf("Initial Conditions\n");
+    //Sleep(500);
     return *initialConditions;
 }
 
@@ -80,19 +84,26 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
         double Riemann = fmax(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
+        //printf("1st choice\n");
+        //printf("%f\n",Riemann);
     }
     
     else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
     {
         double Riemann = 0;
+        printf("2nd choice\n");
     }
     
     else
     {
         double Riemann = fmin(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
+        //printf("3rd choice");
+        //printf("%f\n",Riemann);
     }
     
     //printf("%d\n", arrayTemp[Left]);
+    //printf("Riemann\n");
+    //Sleep(500);
     return Riemann;
 }
 
@@ -109,17 +120,33 @@ double BurgersEquation(double *arrayTemp, int j)
     //double solution = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
 
     double solution = 0.5*pow(arrayTemp[j],2);
- 
+
+    if(j == 25)
+    {
+        printf("BURGERS at postition 25 is %f\n", solution);
+    }
+
+    //printf("Burgers\n");
+    //Sleep(500);
     return solution;
 }
 
 double GodunovScheme(double *arrayTemp, int j)
 {
-    double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
-    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
+    //double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
+    //double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
 
-    double Godunov = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
+    //printf("Left boundary is %f\n", LeftBoundary);
+    //printf("Right boundary is %f\n", RightBoundary);
 
+    double Godunov = arrayTemp[j] - courant * (RiemannSolver(arrayTemp, j, j+1) - RiemannSolver(arrayTemp, j-1, j));
+
+    if(j == 25)
+    {
+        printf("godunov at postition 25 is%f\n", Godunov);
+    }
+    //printf("godunov\n");
+    //Sleep(200);
     return Godunov;
 }
 
@@ -153,7 +180,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         for (int j = 2; j < gridSize-1; j++)
         {
             
-            arraySolution[j] = GodunovScheme(arrayTemp,j);
+            arraySolution[j] = GodunovScheme(arraySolution,j);
 
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
@@ -161,6 +188,13 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         }
         fclose(fpointer);
         //printf("current evolutions is %i\n", i);
+
+        //copies the solutions array onto the temp array
+        memcpy(arrayTemp, arraySolution, gridSize*sizeof(double));
+
+        //if(i=25)
+        printf("elovution %i complete\n", i);
+        //Sleep(200);
     }
     return 0;
 }
@@ -172,6 +206,8 @@ int main ()
     printf("time step size: %f\n", timestepSize);
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
+    
+    //Sleep(500);
 
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 30, 60, 1);
@@ -179,5 +215,5 @@ int main ()
     //call AllEvolutions to run
     AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
    
-    return EXIT_SUCCESS;
+    return 0;
 }
