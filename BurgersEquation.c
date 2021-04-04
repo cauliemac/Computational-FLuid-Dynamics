@@ -69,9 +69,6 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
     //memcpy to copy initial conditions onto the solution array
     memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
 
-
-    //printf("Initial Conditions\n");
-    //Sleep(500);
     return *initialConditions;
 }
 
@@ -84,26 +81,20 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
         double Riemann = fmax(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
-        //printf("1st choice\n");
-        //printf("%f\n",Riemann);
     }
     
     else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
     {
         double Riemann = 0;
-        printf("2nd choice\n");
     }
     
     else
     {
         double Riemann = fmin(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
-        //printf("3rd choice");
-        //printf("%f\n",Riemann);
     }
     
-    //printf("%d\n", arrayTemp[Left]);
-    //printf("Riemann\n");
-    //Sleep(500);
+    printf("the Riemann value is %f\n", Riemann);
+    Sleep(1000);
     return Riemann;
 }
 
@@ -121,10 +112,7 @@ double BurgersEquation(double *arrayTemp, int j)
 
     double solution = 0.5*pow(arrayTemp[j],2);
 
-    if(j == 25)
-    {
-        printf("BURGERS at postition 25 is %f\n", solution);
-    }
+    //printf("BURGERS at postition %i is %f\n", j, solution);
 
     //printf("Burgers\n");
     //Sleep(500);
@@ -133,20 +121,21 @@ double BurgersEquation(double *arrayTemp, int j)
 
 double GodunovScheme(double *arrayTemp, int j)
 {
-    //double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
-    //double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
+    printf("Left boundary is %f\n", LeftBoundary);
 
-    //printf("Left boundary is %f\n", LeftBoundary);
-    //printf("Right boundary is %f\n", RightBoundary);
+    double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+    printf("Right boundary is %f\n", RightBoundary);
 
     double Godunov = arrayTemp[j] - courant * (RiemannSolver(arrayTemp, j, j+1) - RiemannSolver(arrayTemp, j-1, j));
 
+    
     if(j == 25)
     {
-        printf("godunov at postition 25 is%f\n", Godunov);
+        printf("Godunov at postition 25 is%f\n", Godunov);
     }
-    //printf("godunov\n");
-    //Sleep(200);
+    //printf("godunov value at %d is %f\n", j, Godunov);
+    Sleep(2000);
     return Godunov;
 }
 
@@ -189,12 +178,11 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         fclose(fpointer);
         //printf("current evolutions is %i\n", i);
 
-        //copies the solutions array onto the temp array
-        memcpy(arrayTemp, arraySolution, gridSize*sizeof(double));
-
         //if(i=25)
         printf("elovution %i complete\n", i);
-        //Sleep(200);
+        double wow = arraySolution[25];
+        printf("arraySolution 25 is %f\n", wow);
+        Sleep(200);
     }
     return 0;
 }
@@ -207,7 +195,7 @@ int main ()
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
     
-    //Sleep(500);
+    Sleep(500);
 
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 30, 60, 1);
