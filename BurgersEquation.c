@@ -55,7 +55,10 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
         //populates the area between a and b as percentages of the grid with height 2
        for (int i=0; i<gridSize; i++)
         {                
-            if (i/gridSize >= a/100 && i/gridSize <= b/100)   
+            float a_ratio = 100*a/gridSize;
+            float b_ratio = 100*b/gridSize;
+
+            if (i >= a_ratio && i <= b_ratio)   
             {
                 initialConditions[i] = 2;
             }
@@ -112,7 +115,7 @@ double GodunovScheme(double *arrayTemp, int j)
     double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
 
-    double Godunov = arrayTemp[j] - courant * (RightBoundary - LeftBoundary)- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,j));
+    double Godunov = arrayTemp[j] - courant * (RightBoundary - LeftBoundary);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,j));
 
     return Godunov;
 }
@@ -167,7 +170,7 @@ int main ()
     Sleep(1000);
 
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+    getInitialConditions(initialConditions, gridSize, 30, 60, 0);
 
     //call AllEvolutions to run
     AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
