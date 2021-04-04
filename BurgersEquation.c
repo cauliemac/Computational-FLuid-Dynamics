@@ -37,7 +37,7 @@ double GodunovScheme(double *arrayTemp, int j);
 
 //TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
-double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine)
+double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_file = NULL;
@@ -45,15 +45,19 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
 
     //populates array with one wavelength sine wave
     if (sine == 1)
+    {
+        printf("Initial Conditions = Sine Wave");
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
             fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
         }
-
+    }
     else
+    {
         //populates the area between a and b as percentages of the grid with height 2
-       for (int i=0; i<gridSize; i++)
+        printf("Initial Conditions = Square Wave from %d to %d", a, b);
+        for (int i=0; i<gridSize; i++)
         {                
             float a_ratio = 100*a/gridSize;
             float b_ratio = 100*b/gridSize;
@@ -68,7 +72,7 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
             }
             fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
         }
-
+    }
     //memcpy to copy initial conditions onto the solution array
     memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
 
@@ -167,10 +171,11 @@ int main ()
     printf("time step size: %f\n", timestepSize);
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
-    Sleep(1000);
-
+    
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 30, 60, 0);
+
+    Sleep(2000);
 
     //call AllEvolutions to run
     AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
