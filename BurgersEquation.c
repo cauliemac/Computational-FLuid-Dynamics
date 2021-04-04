@@ -94,9 +94,7 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
     {
         Riemann = fmin(BurgerLeft, BurgerRight);
     }
-    
-    printf("the Riemann value at Left %d, Right %d is %f\n", Left, Right, Riemann);
-    Sleep(1000);
+
     return Riemann;
 }
 
@@ -104,40 +102,18 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
 //for upwind it is equal to j
 double BurgersEquation(double *arrayTemp, int j)
 {
-    //double Riemann = RiemannSolver(arrayTemp, j);
-    //double solution = arrayTemp[j] - courant * (0.5 * pow(arrayTemp[k],2) - 0.5*pow(arrayTemp[k-1],2)) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,k));
-    
-    //double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
-    //double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
-
-    //double solution = arrayTemp[j] - courant * (0.5*pow(LeftBoundary,2) - 0.5*pow(LeftBoundary,2));
-
     double solution = 0.5*pow(arrayTemp[j],2);
 
-    printf("BURGERS at postition %i is %f\n", j, solution);
-
-    //printf("Burgers\n");
-    //Sleep(500);
     return solution;
 }
 
 double GodunovScheme(double *arrayTemp, int j)
 {
     double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
-    printf("Left boundary is %f\n", LeftBoundary);
-
     double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
-    printf("Right boundary is %f\n", RightBoundary);
 
-    double Godunov = arrayTemp[j] - courant * (RiemannSolver(arrayTemp, j, j+1) - RiemannSolver(arrayTemp, j-1, j));
+    double Godunov = arrayTemp[j] - courant * (RightBoundary - LeftBoundary)- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,j));
 
-    
-    if(j == 25)
-    {
-        printf("Godunov at postition 25 is%f\n", Godunov);
-    }
-    //printf("godunov value at %d is %f\n", j, Godunov);
-    Sleep(2000);
     return Godunov;
 }
 
@@ -170,7 +146,6 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         //calculates the next value of the current cell
         for (int j = 2; j < gridSize-1; j++)
         {
-            printf("\ncurrent grid is %i\n", j);
             arraySolution[j] = GodunovScheme(arraySolution,j);
 
             //print the x axis label (which is j) and the solution to a text file
@@ -178,13 +153,6 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             
         }
         fclose(fpointer);
-        //printf("current evolutions is %i\n", i);
-
-        //if(i=25)
-        printf("elovution %i complete\n", i);
-        double wow = arraySolution[25];
-        printf("arraySolution 25 is %f\n", wow);
-        Sleep(200);
     }
     return 0;
 }
@@ -196,8 +164,7 @@ int main ()
     printf("time step size: %f\n", timestepSize);
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
-    
-    Sleep(500);
+    Sleep(1000);
 
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 30, 60, 1);
