@@ -77,23 +77,25 @@ double getInitialConditions(double *initialConditions, int grid, float a, float 
 double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
+    double BurgerLeft = BurgersEquation(arrayTemp, Left);
+    double BurgerRight = BurgersEquation(arrayTemp, Right);
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
-        double Riemann = fmax(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
+        Riemann = fmax(BurgerLeft, BurgerRight);
     }
     
     else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
     {
-        double Riemann = 0;
+        Riemann = 0;
     }
     
     else
     {
-        double Riemann = fmin(BurgersEquation(arrayTemp, Left), BurgersEquation(arrayTemp, Right));
+        Riemann = fmin(BurgerLeft, BurgerRight);
     }
     
-    printf("the Riemann value is %f\n", Riemann);
+    printf("the Riemann value at Left %d, Right %d is %f\n", Left, Right, Riemann);
     Sleep(1000);
     return Riemann;
 }
@@ -112,7 +114,7 @@ double BurgersEquation(double *arrayTemp, int j)
 
     double solution = 0.5*pow(arrayTemp[j],2);
 
-    //printf("BURGERS at postition %i is %f\n", j, solution);
+    printf("BURGERS at postition %i is %f\n", j, solution);
 
     //printf("Burgers\n");
     //Sleep(500);
@@ -168,7 +170,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         //calculates the next value of the current cell
         for (int j = 2; j < gridSize-1; j++)
         {
-            
+            printf("\ncurrent grid is %i\n", j);
             arraySolution[j] = GodunovScheme(arraySolution,j);
 
             //print the x axis label (which is j) and the solution to a text file
