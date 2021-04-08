@@ -10,7 +10,7 @@
 With implimentation of slope limiters
 
 g++ BurgersEquation.c SlopeLimiters.c -o BurgersEquation
-use above to compile
+use line above to compile from multiple .c files
 */
 
 // declare starting variables
