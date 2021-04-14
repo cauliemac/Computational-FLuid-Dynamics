@@ -45,7 +45,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
     //populates array with one wavelength sine wave
     if (sine == 1)
     {
-        printf("Initial Conditions = Sine Wave");
+        printf("Initial Conditions = Sine Wave\n");
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
@@ -174,7 +174,8 @@ int main ()
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 30, 60, 1);
 
-    Sleep(2000);
+    printf("Starting Calcualtions\n");
+    Sleep(3000);
 
     //call AllEvolutions to run
     AllEvolutions(arraySolution, evolutions, courant, gridSpacing);

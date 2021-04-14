@@ -162,6 +162,8 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         for (int j = 2; j < gridSize-1; j++)
         {
             arraySolution[j] = GodunovScheme(arraySolution,j);
+            float x = arraySolution[j];
+            printf("Array Solution at %i is: %f\n", j, x);
 
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
