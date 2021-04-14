@@ -35,7 +35,6 @@ double BurgersEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
-//TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {

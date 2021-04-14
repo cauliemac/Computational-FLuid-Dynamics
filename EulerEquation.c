@@ -19,13 +19,23 @@ const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const double evolutions = 100;  //number of evolutions
 const double timestepSize = 0.005;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Cournant number for printout
-//not exactly courant number, should be (max wave speed * timestep)/ gridSpacing
+//not exactly courant number, should be (wave speed * timestep)/ gridSpacing
 
 
-//creates 3 arrays to hold the grid values
-double arraySolution[gridSize];
-double arrayTemp[gridSize];
-double initialConditions[gridSize];
+//creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
+double solutionMass[gridSize];
+double solutionMomentum[gridSize];
+double solutionEnergy[gridSize];
+
+//creates the temp holding arrays for Mass, Momentum, and Energy
+double tempMass[gridSize];
+double tempMomentum[gridSize];
+double tempEnergy[gridSize];
+
+//creates the initial conditions arrays for Mass, Momentum, and Energy
+double initialMass[gridSize];
+double initialMomentum[gridSize];
+double initialEnergy[gridSize];
 
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
@@ -34,13 +44,12 @@ double BurgersEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
-//TODO THIS DOES NOT WORK FOR SINE == 0, I.E. IF I DONT WANT A SINE WAVE
 //gives an initial conditions array with a square or sine wave (if sine == 1)
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_file = NULL;
-    initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
+    //TODO initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
 
     //populates array with one wavelength sine wave
     if (sine == 1)
@@ -146,7 +155,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         char buffer[256]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 256, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
+        //TODO snprintf(buffer, sizeof(char) * 256, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
