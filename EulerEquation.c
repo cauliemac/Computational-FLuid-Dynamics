@@ -16,8 +16,8 @@ use line above to compile from multiple .c files
 
 #define gridSize 1000 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
-const double evolutions = 100;  //number of evolutions
-const double timestepSize = 0.005;  //size of each timestep ( also k)
+const int evolutions = 100;  //number of evolutions
+const float timestepSize = 0.005;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Cournant number for printout
 //not exactly courant number, should be (wave speed * timestep)/ gridSpacing
 
