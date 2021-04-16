@@ -40,7 +40,7 @@ double initialEnergy[gridSize];
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
-double BurgersEquation(double *arrayTemp, int j);
+double EulerEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
@@ -49,7 +49,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_file = NULL;
-    //TODO initial_file = fopen("BurgersEquation_1D_results/BurgersEquationInitial.txt", "w");
+    initial_file = fopen("EulerEquation_1D_results/EulerEquationInitial.txt", "w");
 
     //populates array with one wavelength sine wave
     if (sine == 1)
@@ -83,6 +83,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
     }
     //memcpy to copy initial conditions onto the solution array
     memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
+    fclose(initial_file);
 
     return *initialConditions;
 }
@@ -92,8 +93,8 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
-    double BurgerLeft = BurgersEquation(arrayTemp, Left);
-    double BurgerRight = BurgersEquation(arrayTemp, Right);
+    double BurgerLeft = EulerEquation(arrayTemp, Left);
+    double BurgerRight = EulerEquation(arrayTemp, Right);
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
@@ -115,7 +116,7 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
 
 //k is to take the place of j+1 for upwind negative value (downwind) sections
 //for upwind it is equal to j
-double BurgersEquation(double *arrayTemp, int j)
+double EulerEquation(double *arrayTemp, int j)
 {
     double solution = 0.5*pow(arrayTemp[j],2);
 
@@ -155,7 +156,7 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         char buffer[256]; // The filename buffer.
 
         // Put "file" then i then ".txt" in to filename.
-        //TODO snprintf(buffer, sizeof(char) * 256, "BurgersEquation_1D_results/BurgersEquationSolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerEquationSolution%i.txt", i);
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell

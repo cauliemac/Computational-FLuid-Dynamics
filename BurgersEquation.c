@@ -31,7 +31,7 @@ double initialConditions[gridSize];
 //declareing the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
-double BurgersEquation(double *arrayTemp, int j);
+double EulerEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
@@ -83,8 +83,8 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
-    double BurgerLeft = BurgersEquation(arrayTemp, Left);
-    double BurgerRight = BurgersEquation(arrayTemp, Right);
+    double BurgerLeft = EulerEquation(arrayTemp, Left);
+    double BurgerRight = EulerEquation(arrayTemp, Right);
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
@@ -106,7 +106,7 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
 
 //k is to take the place of j+1 for upwind negative value (downwind) sections
 //for upwind it is equal to j
-double BurgersEquation(double *arrayTemp, int j)
+double EulerEquation(double *arrayTemp, int j)
 {
     double solution = 0.5*pow(arrayTemp[j],2);
 
