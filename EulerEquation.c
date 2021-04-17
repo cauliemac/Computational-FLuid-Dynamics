@@ -41,7 +41,7 @@ double initialEnergy[gridSize];
 
 //declaring the functions
 double initialConditions[gridSize];
-static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
 double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
 
 double EulerEquationDensity(double *arrayTemp, int j);
@@ -259,6 +259,8 @@ int chooseSlopeLimiter(int n);
 double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
 {
     double Riemann;
+    double EulerLeft;
+    double EulerRight;
     /*
      *Changes the variables for the left and right state depending on 
      *whether it's for density, momentum, or energy
@@ -284,12 +286,10 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
     {
         Riemann = fmax(EulerLeft, EulerRight);
     }
-    
     else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
     {
         Riemann = 0;
     }
-    
     else
     {
         Riemann = fmin(EulerLeft, EulerRight);
