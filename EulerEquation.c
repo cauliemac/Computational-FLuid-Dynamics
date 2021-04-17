@@ -253,7 +253,7 @@ int chooseSlopeLimiter(int n);
  *takes the equations for Denstiy, Momentum, Energy as a pointer
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
-double RiemannSolver(double *arrayTemp, void *EulerEquationDME, int Left, int Right)
+double RiemannSolver(double *arrayTemp, double *EulerEquationDME, int Left, int Right)
 {
     double Riemann;
     double EulerLeft = EulerEquationDME(arrayTemp, Left);
