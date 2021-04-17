@@ -42,13 +42,13 @@ double initialEnergy[gridSize];
 //declaring the functions
 double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
-double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
+double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
 
-void EulerEquationDensity(double *arrayTemp, int j);
-void EulerEquationMomentum(double *arrayTemp, int j);
-void EulerEquationEnergy(double *arrayTemp, int j);
+double EulerEquationDensity(double *arrayTemp, int j);
+double EulerEquationMomentum(double *arrayTemp, int j);
+double EulerEquationEnergy(double *arrayTemp, int j);
 
-void RiemannSolver(double *arrayTemp, void *EulerEquation int j, int k);
+double RiemannSolver(double *arrayTemp, double *EulerEquation, int j, int k);
 
 double GodunovScheme(double *arrayTemp, int j, int Scheme);
 double GodunovDensity(double *arrayTemp, int j);
@@ -74,7 +74,7 @@ int main ()
     Sleep(2000);
 
     //call AllEvolutions to run
-    AllEvolutions(arraySolution, evolutions, courant, gridSpacing);
+    AllEvolutions(solutionDensity, solutionMomentum, solutionEnergy, evolutions, courant, gridSpacing);
    
     return 0;
 }
@@ -147,7 +147,7 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
  *and prints the values to a text file
  *closes text file
  */
-double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing)
+double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing)
 {
     for (int i = 0; i < evolutions; i++)
     {
@@ -217,7 +217,7 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme)
         double Godunov = tempDensity[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
     }
 
-    elif (Scheme == 2)
+    else if (Scheme == 2)
     {
         double momentumLeft = RiemannSolver(tempMomentum, EulerEquationMomentum, j-1, j);
         double momentumRight = RiemannSolver(tempMomentum, EulerEquationMomentum, j, j+1);
@@ -225,7 +225,7 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme)
         double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
     }
 
-    elif (Scheme == 3)
+    else if (Scheme == 3)
     {
         double energyLeft = RiemannSolver(tempEnergy, EulerEquationEnergy, j-1, j);
         double energyRight = RiemannSolver(tempEnergy, EulerEquationEnergy, j, j+1);
@@ -253,7 +253,7 @@ int chooseSlopeLimiter(int n);
  *takes the equations for Denstiy, Momentum, Energy as a pointer
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
-void RiemannSolver(double *arrayTemp, void *EulerEquationDME, int Left, int Right)
+double RiemannSolver(double *arrayTemp, void *EulerEquationDME, int Left, int Right)
 {
     double Riemann;
     double EulerLeft = EulerEquationDME(arrayTemp, Left);
