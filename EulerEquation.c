@@ -48,7 +48,7 @@ double EulerEquationDensity(double *arrayTemp, int j);
 double EulerEquationMomentum(double *arrayTemp, int j);
 double EulerEquationEnergy(double *arrayTemp, int j);
 
-double RiemannSolver(double *arrayTemp, double *EulerEquation, int j, int k);
+double RiemannSolver(double *arrayTemp, int Scheme, int j, int k);
 
 double GodunovScheme(double *arrayTemp, int j, int Scheme);
 double GodunovDensity(double *arrayTemp, int j);
@@ -84,7 +84,7 @@ int main ()
  *or a square wave with the peak between a and b as percentages
  *of the whole grid (if sine==0)
  */
-double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_density = NULL;
@@ -189,7 +189,9 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
             solutionEnergy[j] = GodunovScheme(solutionEnergy, j, 3);
  
             //print the x axis label (which is j) and the solution to a text file
-            fprintf(densityFile, "%i \t %f\n", j, arraySolution[j]);
+            fprintf(densityFile, "%i \t %f\n", j, solutionDensity[j]);
+            fprintf(momentumFile, "%i \t %f\n", j, solutionMomentum[j]);
+            fprintf(energyFile, "%i \t %f\n", j, solutionEnergy[j]);
             
         }
         fclose(densityFile);
@@ -209,26 +211,27 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
  */
 double GodunovScheme(double *arrayTemp, int j, int Scheme)
 {
+    double Godunov;
     if (Scheme == 1)
     {
-        double densityLeft = RiemannSolver(tempDensity, EulerEquationDensity, j-1, j);
-        double densityRight = RiemannSolver(tempDensity, EulerEquationDensity, j, j+1);
+        double densityLeft = RiemannSolver(tempDensity, Scheme, j-1, j);
+        double densityRight = RiemannSolver(tempDensity, Scheme, j, j+1);
 
         double Godunov = tempDensity[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
     }
 
     else if (Scheme == 2)
     {
-        double momentumLeft = RiemannSolver(tempMomentum, EulerEquationMomentum, j-1, j);
-        double momentumRight = RiemannSolver(tempMomentum, EulerEquationMomentum, j, j+1);
+        double momentumLeft = RiemannSolver(tempMomentum, Scheme, j-1, j);
+        double momentumRight = RiemannSolver(tempMomentum, Scheme, j, j+1);
 
         double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
     }
 
     else if (Scheme == 3)
     {
-        double energyLeft = RiemannSolver(tempEnergy, EulerEquationEnergy, j-1, j);
-        double energyRight = RiemannSolver(tempEnergy, EulerEquationEnergy, j, j+1);
+        double energyLeft = RiemannSolver(tempEnergy, Scheme, j-1, j);
+        double energyRight = RiemannSolver(tempEnergy, Scheme, j, j+1);
 
         double Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);
     }
@@ -250,14 +253,32 @@ int chooseSlopeLimiter(int n);
 /*
  *Returns the exact solution to the Riemann problem between two piecewise states
  *for the Euler Equations
- *takes the equations for Denstiy, Momentum, Energy as a pointer
+ *chooses between the equations for Denstiy, Momentum, Energy
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
-double RiemannSolver(double *arrayTemp, double *EulerEquationDME, int Left, int Right)
+double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
 {
     double Riemann;
-    double EulerLeft = EulerEquationDME(arrayTemp, Left);
-    double EulerRight = EulerEquationDME(arrayTemp, Right);
+    /*
+     *Changes the variables for the left and right state depending on 
+     *whether it's for density, momentum, or energy
+     */
+    if (Scheme == 1)
+    {
+        double EulerLeft = EulerEquationDensity(arrayTemp, Left);
+        double EulerRight = EulerEquationDensity(arrayTemp, Right);
+    }
+    else if (Scheme == 2)
+    {
+        double EulerLeft = EulerEquationMomentum(arrayTemp, Left);
+        double EulerRight = EulerEquationMomentum(arrayTemp, Right);
+    }
+    else if (Scheme == 3)
+    {
+        double EulerLeft = EulerEquationEnergy(arrayTemp, Left);
+        double EulerRight = EulerEquationEnergy(arrayTemp, Right);
+    }
+    
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
