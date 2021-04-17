@@ -8,7 +8,7 @@
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
  *                                                            *
- *  g++ BurgersEquation.c SlopeLimiters.c -o BurgersEquation  *
+ *  g++ EulerEquation.c SlopeLimiters.c -o EulerEquation  *
  *  use line above to compile from multiple .c files          *
  *                                                            *
  **************************************************************/
@@ -167,13 +167,11 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         densityFile = fopen(buffer, "w");
 
         FILE *momentumFile = NULL;
-        char buffer[256]; // The filename buffer.
         // Put "file" then i then ".txt" in to filename.
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerMomentumSolution%i.txt", i);
         momentumFile = fopen(buffer, "w");
 
         FILE *energyFile = NULL;
-        char buffer[256]; // The filename buffer.
         // Put "file" then i then ".txt" in to filename.
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerEnergySolution%i.txt", i);
         energyFile = fopen(buffer, "w");
@@ -195,6 +193,8 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
             
         }
         fclose(densityFile);
+        fclose(momentumFile);
+        fclose(energyFile);
     }
     return 0;
 }
