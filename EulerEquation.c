@@ -18,9 +18,9 @@
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
 const float timestepSize = 0.005;  //size of each timestep ( also k)
-double courant = timestepSize/gridSpacing; //Cournant number for printout
+double courant = timestepSize/gridSpacing; //Courant number for printout
 /*
- *double coucarnt is not exactly courant number, 
+ *double courant is not exactly courant number, 
  *should be (wave speed * timestep)/ gridSpacing
  */
 
