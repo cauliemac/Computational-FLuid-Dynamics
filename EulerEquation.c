@@ -43,8 +43,10 @@ double initialEnergy[gridSize];
 //declaring the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
-double EulerEquation(double *arrayTemp, int j);
-double RiemannSolver(double *arrayTemp, int j, int k);
+void EulerEquationDensity(double *arrayTemp, int j);
+void EulerEquationMomentum(double *arrayTemp, int j);
+void EulerEquationEnergy(double *arrayTemp, int j);
+void RiemannSolver(double *arrayTemp, void *EulerEquation int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
 /*
@@ -99,14 +101,15 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 
 /*
  *Returns the exact solution to the Riemann problem between two piecewise states
- *Currently set for Burgers equation
+ *for the Euler Equations
+ *takes the equations for Denstiy, Momentum, Energy as a pointer
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
-double RiemannSolver(double *arrayTemp, int Left, int Right)
+void RiemannSolver(double *arrayTemp, void *EulerEquationDME, int Left, int Right)
 {
     double Riemann;
-    double EulerLeft = EulerEquation(arrayTemp, Left);
-    double EulerRight = EulerEquation(arrayTemp, Right);
+    double EulerLeft = EulerEquationDME(arrayTemp, Left);
+    double EulerRight = EulerEquationDME(arrayTemp, Right);
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
@@ -128,9 +131,24 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
 
 /*
  *Calculates the solution to the Euler Equation at a given gridpoint
+ *for the density
  *This is used to calculate the flux though a cell wall
  */
-double EulerEquation(double *arrayTemp, int j)
+double EulerEquationDensity(double *arrayTemp, int j)
+{
+    double solution = 0.5*pow(arrayTemp[j],2);
+
+    return solution;
+}
+
+double EulerEquationMomentum(double *arrayTemp, int j)
+{
+    double solution = 0.5*pow(arrayTemp[j],2);
+
+    return solution;
+}
+
+double EulerEquationEnergy(double *arrayTemp, int j)
 {
     double solution = 0.5*pow(arrayTemp[j],2);
 
