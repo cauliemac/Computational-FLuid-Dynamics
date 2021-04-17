@@ -143,12 +143,10 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
         fpointer = fopen(buffer, "w");
 
         //calculates the next value of the current cell
-        for (int j = 2; j < gridSize-1; j++)
+        for (int j = 1; j < gridSize-1; j++)
         {
             arraySolution[j] = GodunovScheme(arraySolution,j);
-            float x = arraySolution[j];
-            printf("Array Solution at %i is: %f\n", j, x);
-
+ 
             //print the x axis label (which is j) and the solution to a text file
             fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
             
@@ -164,8 +162,14 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
  */
 double GodunovScheme(double *arrayTemp, int j)
 {
-    double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
-    double RightBoundary = RiemannSolver(arrayTemp, j, j+1);
+    double densityLeft = RiemannSolver(arrayTemp, EulerEquationDensity, j-1, j);
+    double densityRight = RiemannSolver(arrayTemp, EulerEquationDensity, j, j+1);
+
+    double momentumLeft = RiemannSolver(arrayTemp, EulerEquationMomentum, j-1, j);
+    double momentumRight = RiemannSolver(arrayTemp, EulerEquationMomentum, j, j+1);
+
+    double energyLeft = RiemannSolver(arrayTemp, EulerEquationEnergy, j-1, j);
+    double energyRight = RiemannSolver(arrayTemp, EulerEquationEnergy, j, j+1);
 
     double Godunov = arrayTemp[j] - courant * (RightBoundary - LeftBoundary);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,j));
 
