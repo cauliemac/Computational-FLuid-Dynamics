@@ -5,21 +5,24 @@
 #include <Windows.h>
 #include "SlopeLimiters.h"
 
-/*
-1D implimentation of Euler's Equations of Gas Dynamics
-
-g++ BurgersEquation.c SlopeLimiters.c -o BurgersEquation
-use line above to compile from multiple .c files
-*/
+/**************************************************************
+ *  1D implimentation of Euler's Equations of Gas Dynamics    *
+ *                                                            *
+ *  g++ BurgersEquation.c SlopeLimiters.c -o BurgersEquation  *
+ *  use line above to compile from multiple .c files          *
+ *                                                            *
+ **************************************************************/
 
 // declare starting variables
-
 #define gridSize 1000 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
 const float timestepSize = 0.005;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Cournant number for printout
-//not exactly courant number, should be (wave speed * timestep)/ gridSpacing
+/*
+ *double coucarnt is not exactly courant number, 
+ *should be (wave speed * timestep)/ gridSpacing
+ */
 
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
@@ -27,24 +30,28 @@ double solutionMass[gridSize];
 double solutionMomentum[gridSize];
 double solutionEnergy[gridSize];
 
-//creates the temp holding arrays for Mass, Momentum, and Energy
+//creates three temp holding arrays for Mass, Momentum, and Energy
 double tempMass[gridSize];
 double tempMomentum[gridSize];
 double tempEnergy[gridSize];
 
-//creates the initial conditions arrays for Mass, Momentum, and Energy
+//creates three initial conditions arrays for Mass, Momentum, and Energy
 double initialMass[gridSize];
 double initialMomentum[gridSize];
 double initialEnergy[gridSize];
 
-//declareing the functions
+//declaring the functions
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
 double EulerEquation(double *arrayTemp, int j);
 double RiemannSolver(double *arrayTemp, int j, int k);
 double GodunovScheme(double *arrayTemp, int j);
 
-//gives an initial conditions array with a square or sine wave (if sine == 1)
+/*
+ *Returns an array with the values of one sine wave (if sine==1)
+ *or a square wave with the peak between a and b as percentages
+ *of the whole grid (if sine==0)
+ */
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
@@ -61,9 +68,10 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
             fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
         }
     }
+    //populates the area between a and b (as percentages of the grid) with height 2
+    //TODO In future versions this height should be a variable
     else
     {
-        //populates the area between a and b as percentages of the grid with height 2
         printf("Initial Conditions = Square Wave from %d to %d", a, b);
         for (int i=0; i<gridSize; i++)
         {                
@@ -89,16 +97,20 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
 }
 
 
-//Take if pos/neg statement from all evolutions
+/*
+ *Returns the exact solution to the Riemann problem between two piecewise states
+ *Currently set for Burgers equation
+ *Need to use exact_adiabatic.c to find the solution for Eulers
+ */
 double RiemannSolver(double *arrayTemp, int Left, int Right)
 {
     double Riemann;
-    double BurgerLeft = EulerEquation(arrayTemp, Left);
-    double BurgerRight = EulerEquation(arrayTemp, Right);
+    double EulerLeft = EulerEquation(arrayTemp, Left);
+    double EulerRight = EulerEquation(arrayTemp, Right);
 
     if (arrayTemp[Left] >= arrayTemp[Right])
     {
-        Riemann = fmax(BurgerLeft, BurgerRight);
+        Riemann = fmax(EulerLeft, EulerRight);
     }
     
     else if (arrayTemp[Left] <= 0 && arrayTemp[Right] >= 0)
@@ -108,14 +120,16 @@ double RiemannSolver(double *arrayTemp, int Left, int Right)
     
     else
     {
-        Riemann = fmin(BurgerLeft, BurgerRight);
+        Riemann = fmin(EulerLeft, EulerRight);
     }
 
     return Riemann;
 }
 
-//k is to take the place of j+1 for upwind negative value (downwind) sections
-//for upwind it is equal to j
+/*
+ *Calculates the solution to the Euler Equation at a given gridpoint
+ *This is used to calculate the flux though a cell wall
+ */
 double EulerEquation(double *arrayTemp, int j)
 {
     double solution = 0.5*pow(arrayTemp[j],2);
@@ -123,6 +137,10 @@ double EulerEquation(double *arrayTemp, int j)
     return solution;
 }
 
+/*
+ *Uses the Godunov scheme in combination with the flux in and out of a gridpoint
+ *to calculate the next value of a gridpoint
+ */
 double GodunovScheme(double *arrayTemp, int j)
 {
     double LeftBoundary = RiemannSolver(arrayTemp, j-1, j);
@@ -144,6 +162,12 @@ int chooseSlopeLimiter(int n);
 }
 */
 
+/*
+ *Copies the solution array to the temp array
+ *calls the Godunov Scheme function for all evolutions
+ *and prints the values to a text file
+ *closes text file
+ */
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing)
 {
     for (int i = 0; i < evolutions; i++)
@@ -175,6 +199,11 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
     return 0;
 }
 
+/*
+ *Prints some useful info to the console
+ *Gets the initial conditions
+ *Calls the AllEvolutions function
+ */
 int main ()
 {   
     //print some useful info to the console
