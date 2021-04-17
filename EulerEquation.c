@@ -25,28 +25,35 @@ double courant = timestepSize/gridSpacing; //Courant number for printout
  */
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
-double solutionMass[gridSize];
+double solutionDensity[gridSize];
 double solutionMomentum[gridSize];
 double solutionEnergy[gridSize];
 
 //creates three temp holding arrays for Mass, Momentum, and Energy
-double tempMass[gridSize];
+double tempDensity[gridSize];
 double tempMomentum[gridSize];
 double tempEnergy[gridSize];
 
 //creates three initial conditions arrays for Mass, Momentum, and Energy
-double initialMass[gridSize];
+double initialDensity[gridSize];
 double initialMomentum[gridSize];
 double initialEnergy[gridSize];
 
 //declaring the functions
+double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, float a, float b, int sine); 
 double AllEvolutions(double *arraySolution, int evolutions, double courant, double gridSpacing);
+
 void EulerEquationDensity(double *arrayTemp, int j);
 void EulerEquationMomentum(double *arrayTemp, int j);
 void EulerEquationEnergy(double *arrayTemp, int j);
+
 void RiemannSolver(double *arrayTemp, void *EulerEquation int j, int k);
-double GodunovScheme(double *arrayTemp, int j);
+
+double GodunovScheme(double *arrayTemp, int j, int Scheme);
+double GodunovDensity(double *arrayTemp, int j);
+double GodunovMomentum(double *arrayTemp, int j);
+double GodunovEnergy(double *arrayTemp, int j);
 
 /*
  *Prints some useful info to the console
@@ -62,7 +69,7 @@ int main ()
     printf("Courant number: %f\n", courant);
     
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 30, 60, 1);
+    getInitialConditions(initialConditions, gridSize, 40, 60, 0);
 
     Sleep(2000);
 
@@ -80,8 +87,12 @@ int main ()
 double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
-    FILE *initial_file = NULL;
-    initial_file = fopen("EulerEquation_1D_results/EulerEquationInitial.txt", "w");
+    FILE *initial_density = NULL;
+    initial_density = fopen("EulerEquation_1D_results/EulerInitialDensity.txt", "w");
+    FILE *initial_momentum = NULL;
+    initial_momentum = fopen("EulerEquation_1D_results/EulerInitialMomentum.txt", "w");
+    FILE *initial_energy = NULL;
+    initial_energy = fopen("EulerEquation_1D_results/EulerInitialEnergy.txt", "w");
 
     //populates array with one wavelength sine wave
     if (sine == 1)
@@ -90,7 +101,9 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
-            fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_momentum, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_energy, " %i \t %f\n", i, initialConditions[i]);
         }
     }
     //populates the area between a and b (as percentages of the grid) with height 2
@@ -111,14 +124,21 @@ double getInitialConditions(double *initialConditions, int grid, int a, int b, i
             {
                 initialConditions[i] = 1;
             }
-            fprintf(initial_file, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_momentum, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_energy, " %i \t %f\n", i, initialConditions[i]);
         }
     }
     //memcpy to copy initial conditions onto the solution array
-    memcpy(arraySolution, initialConditions, gridSize * sizeof(double));
-    fclose(initial_file);
+    memcpy(solutionDensity, initialConditions, gridSize * sizeof(double));
+    memcpy(solutionMomentum, initialConditions, gridSize * sizeof(double));
+    memcpy(solutionEnergy, initialConditions, gridSize * sizeof(double));
+    
+    fclose(initial_density);
+    fclose(initial_momentum);
+    fclose(initial_energy);
 
-    return *initialConditions;
+    return 0;
 }
 
 /*
@@ -132,26 +152,49 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
-        memcpy(arrayTemp, arraySolution, gridSize*sizeof(double));  
+        memcpy(tempDensity, solutionDensity, gridSize*sizeof(double));
+        memcpy(tempMomentum, solutionMomentum, gridSize*sizeof(double));
+        memcpy(tempEnergy, solutionEnergy, gridSize*sizeof(double)); 
 
-        //changes file name with evolution cycle.
-        FILE *fpointer = NULL;
+        /*
+         *Creates a text file for density, momentum, and energy wwith each evolution
+         *changes file name with evolution cycle.
+         */
+        FILE *densityFile = NULL;
         char buffer[256]; // The filename buffer.
-
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerEquationSolution%i.txt", i);
-        fpointer = fopen(buffer, "w");
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
+        densityFile = fopen(buffer, "w");
+
+        FILE *momentumFile = NULL;
+        char buffer[256]; // The filename buffer.
+        // Put "file" then i then ".txt" in to filename.
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerMomentumSolution%i.txt", i);
+        momentumFile = fopen(buffer, "w");
+
+        FILE *energyFile = NULL;
+        char buffer[256]; // The filename buffer.
+        // Put "file" then i then ".txt" in to filename.
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerEnergySolution%i.txt", i);
+        energyFile = fopen(buffer, "w");
 
         //calculates the next value of the current cell
         for (int j = 1; j < gridSize-1; j++)
         {
-            arraySolution[j] = GodunovScheme(arraySolution,j);
+            /*
+             *Calls the Godunov Scheme for Density, Momentum, and Energy
+             *if Scheme == 1 then it uses the varialbes for density
+             *if Scheme == 2 then it uses momentum and so on
+             */
+            solutionDensity[j] = GodunovScheme(solutionDensity, j, 1);
+            solutionMomentum[j] = GodunovScheme(solutionMomentum, j, 2);
+            solutionEnergy[j] = GodunovScheme(solutionEnergy, j, 3);
  
             //print the x axis label (which is j) and the solution to a text file
-            fprintf(fpointer, "%i \t %f\n", j, arraySolution[j]);
+            fprintf(densityFile, "%i \t %f\n", j, arraySolution[j]);
             
         }
-        fclose(fpointer);
+        fclose(densityFile);
     }
     return 0;
 }
@@ -159,20 +202,37 @@ double AllEvolutions(double *arraySolution, int evolutions, double courant, doub
 /*
  *Uses the Godunov scheme in combination with the flux in and out of a gridpoint
  *to calculate the next value of a gridpoint
+
+ *if Scheme == 1 then it uses the varialbes for density
+ *if Scheme == 2 then it uses the variables for momentum
+ *if Scheme == 3 the it uses the variables for Energy
  */
-double GodunovScheme(double *arrayTemp, int j)
+double GodunovScheme(double *arrayTemp, int j, int Scheme)
 {
-    double densityLeft = RiemannSolver(arrayTemp, EulerEquationDensity, j-1, j);
-    double densityRight = RiemannSolver(arrayTemp, EulerEquationDensity, j, j+1);
+    if (Scheme == 1)
+    {
+        double densityLeft = RiemannSolver(tempDensity, EulerEquationDensity, j-1, j);
+        double densityRight = RiemannSolver(tempDensity, EulerEquationDensity, j, j+1);
 
-    double momentumLeft = RiemannSolver(arrayTemp, EulerEquationMomentum, j-1, j);
-    double momentumRight = RiemannSolver(arrayTemp, EulerEquationMomentum, j, j+1);
+        double Godunov = tempDensity[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+    }
 
-    double energyLeft = RiemannSolver(arrayTemp, EulerEquationEnergy, j-1, j);
-    double energyRight = RiemannSolver(arrayTemp, EulerEquationEnergy, j, j+1);
+    elif (Scheme == 2)
+    {
+        double momentumLeft = RiemannSolver(tempMomentum, EulerEquationMomentum, j-1, j);
+        double momentumRight = RiemannSolver(tempMomentum, EulerEquationMomentum, j, j+1);
 
-    double Godunov = arrayTemp[j] - courant * (RightBoundary - LeftBoundary);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(arrayTemp,j));
+        double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
+    }
 
+    elif (Scheme == 3)
+    {
+        double energyLeft = RiemannSolver(tempEnergy, EulerEquationEnergy, j-1, j);
+        double energyRight = RiemannSolver(tempEnergy, EulerEquationEnergy, j, j+1);
+
+        double Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);
+    }
+    
     return Godunov;
 }
 
