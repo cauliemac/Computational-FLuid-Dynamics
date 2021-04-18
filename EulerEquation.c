@@ -184,6 +184,9 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
             solutionDensity[j] = GodunovScheme(solutionDensity, j, 1);
             solutionMomentum[j] = GodunovScheme(solutionMomentum, j, 2);
             solutionEnergy[j] = GodunovScheme(solutionEnergy, j, 3);
+
+            printf("Momentum at %i is =  %f\n", j, solutionMomentum[j]);
+            Sleep(500);
  
             //print the x axis label (which is j) and the solution to a text file
             fprintf(densityFile, "%i \t %f\n", j, solutionDensity[j]);
@@ -223,6 +226,7 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
         double momentumRight = RiemannSolver(tempMomentum, Scheme_DME, j, j+1);
 
         double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
+        /*
         printf("here\n");
         printf("value for momentum is = %f\n",Godunov);
         printf("value for momentumLEFT is = %f\n", momentumLeft);
@@ -230,6 +234,7 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
         printf("temp value for momentum is = %f\n", tempMomentum);
         printf("value for courant is = %f\n", courant);
         Sleep(1000);
+        */
     }
 
     else if (Scheme_DME == 3)
@@ -318,7 +323,8 @@ double EulerEquationDensity(double *tempDensity, int j)
 {
     double solution = 0.5*pow(tempDensity[j],2);
 
-    return solution;
+    //return solution;
+    return 2;
 }
 
 double EulerEquationMomentum(double *tempMomentum, int j)
