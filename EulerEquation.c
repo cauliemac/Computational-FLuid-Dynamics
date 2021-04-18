@@ -14,7 +14,7 @@
  **************************************************************/
 
 // declare starting variables
-#define gridSize 1000 //size of grid
+#define gridSize 100 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
 const float timestepSize = 0.005;  //size of each timestep ( also k)
@@ -88,11 +88,11 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_density = NULL;
-    initial_density = fopen("EulerEquation_1D_results/EulerInitialDensity.txt", "w");
+    initial_density = fopen("EulerEquation_1D_results/_EulerInitialDensity.txt", "w");
     FILE *initial_momentum = NULL;
-    initial_momentum = fopen("EulerEquation_1D_results/EulerInitialMomentum.txt", "w");
+    initial_momentum = fopen("EulerEquation_1D_results/_EulerInitialMomentum.txt", "w");
     FILE *initial_energy = NULL;
-    initial_energy = fopen("EulerEquation_1D_results/EulerInitialEnergy.txt", "w");
+    initial_energy = fopen("EulerEquation_1D_results/_EulerInitialEnergy.txt", "w");
 
     //populates array with one wavelength sine wave
     if (sine == 1)
@@ -113,8 +113,8 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
         printf("Initial Conditions = Square Wave from %d to %d", a, b);
         for (int i=0; i<gridSize; i++)
         {                
-            float a_ratio = 100*a/gridSize;
-            float b_ratio = 100*b/gridSize;
+            float a_ratio = a*gridSize/100;
+            float b_ratio = b*gridSize/100;
 
             if (i >= a_ratio && i <= b_ratio)   
             {
@@ -209,29 +209,30 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-double GodunovScheme(double *arrayTemp, int j, int Scheme)
+double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
 {
     double Godunov;
-    if (Scheme == 1)
+    if (Scheme_DME == 1)
     {
-        double densityLeft = RiemannSolver(tempDensity, Scheme, j-1, j);
-        double densityRight = RiemannSolver(tempDensity, Scheme, j, j+1);
+        double densityLeft = RiemannSolver(tempDensity, Scheme_DME, j-1, j);
+        double densityRight = RiemannSolver(tempDensity, Scheme_DME, j, j+1);
 
         double Godunov = tempDensity[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
     }
 
-    else if (Scheme == 2)
+    else if (Scheme_DME == 2)
     {
-        double momentumLeft = RiemannSolver(tempMomentum, Scheme, j-1, j);
-        double momentumRight = RiemannSolver(tempMomentum, Scheme, j, j+1);
+        double momentumLeft = RiemannSolver(tempMomentum, Scheme_DME, j-1, j);
+        double momentumRight = RiemannSolver(tempMomentum, Scheme_DME, j, j+1);
 
         double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
+        printf("here");
     }
 
-    else if (Scheme == 3)
+    else if (Scheme_DME == 3)
     {
-        double energyLeft = RiemannSolver(tempEnergy, Scheme, j-1, j);
-        double energyRight = RiemannSolver(tempEnergy, Scheme, j, j+1);
+        double energyLeft = RiemannSolver(tempEnergy, Scheme_DME, j-1, j);
+        double energyRight = RiemannSolver(tempEnergy, Scheme_DME, j, j+1);
 
         double Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);
     }
