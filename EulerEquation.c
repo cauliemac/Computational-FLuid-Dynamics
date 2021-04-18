@@ -226,7 +226,13 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
         double momentumRight = RiemannSolver(tempMomentum, Scheme_DME, j, j+1);
 
         double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
-        printf("here");
+        printf("here\n");
+        printf("value for momentum is = %f\n",Godunov);
+        printf("value for momentumLEFT is = %f\n", momentumLeft);
+        printf("value for momentumRIGHT is = %f\n", momentumRight);
+        printf("temp value for momentum is = %f\n", tempMomentum);
+        printf("value for courant is = %f\n", courant);
+        Sleep(1000);
     }
 
     else if (Scheme_DME == 3)
