@@ -44,16 +44,13 @@ double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
 double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
 
-double EulerEquationDensity(double *arrayTemp, int j);
-double EulerEquationMomentum(double *arrayTemp, int j);
-double EulerEquationEnergy(double *arrayTemp, int j);
+double EulerEquationDensity(double *tempDensity, int j);
+double EulerEquationMomentum(double *tempMomentum, int j);
+double EulerEquationEnergy(double *tempEnergy, int j);
 
 double RiemannSolver(double *arrayTemp, int Scheme, int j, int k);
 
 double GodunovScheme(double *arrayTemp, int j, int Scheme);
-double GodunovDensity(double *arrayTemp, int j);
-double GodunovMomentum(double *arrayTemp, int j);
-double GodunovEnergy(double *arrayTemp, int j);
 
 /*
  *Prints some useful info to the console
@@ -268,6 +265,7 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
     double Riemann;
     double EulerLeft;
     double EulerRight;
+
     /*
      *Changes the variables for the left and right state depending on 
      *whether it's for density, momentum, or energy
@@ -276,16 +274,22 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
     {
         double EulerLeft = EulerEquationDensity(arrayTemp, Left);
         double EulerRight = EulerEquationDensity(arrayTemp, Right);
+
+        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
     else if (Scheme == 2)
     {
         double EulerLeft = EulerEquationMomentum(arrayTemp, Left);
         double EulerRight = EulerEquationMomentum(arrayTemp, Right);
+
+        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
     else if (Scheme == 3)
     {
         double EulerLeft = EulerEquationEnergy(arrayTemp, Left);
         double EulerRight = EulerEquationEnergy(arrayTemp, Right);
+
+        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
     
 
@@ -310,23 +314,23 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
  *for the density
  *This is used to calculate the flux though a cell wall
  */
-double EulerEquationDensity(double *arrayTemp, int j)
+double EulerEquationDensity(double *tempDensity, int j)
 {
-    double solution = 0.5*pow(arrayTemp[j],2);
+    double solution = 0.5*pow(tempDensity[j],2);
 
     return solution;
 }
 
-double EulerEquationMomentum(double *arrayTemp, int j)
+double EulerEquationMomentum(double *tempMomentum, int j)
 {
-    double solution = 0.5*pow(arrayTemp[j],2);
+    double solution = 0.5*pow(tempMomentum[j],2);
 
     return solution;
 }
 
-double EulerEquationEnergy(double *arrayTemp, int j)
+double EulerEquationEnergy(double *tempEnergy, int j)
 {
-    double solution = 0.5*pow(arrayTemp[j],2);
+    double solution = 0.5*pow(tempEnergy[j],2);
 
     return solution;
 }
