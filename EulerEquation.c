@@ -185,8 +185,7 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
             solutionMomentum[j] = GodunovScheme(solutionMomentum, j, 2);
             solutionEnergy[j] = GodunovScheme(solutionEnergy, j, 3);
 
-            printf("Momentum at %i is =  %f\n", j, solutionMomentum[j]);
-            Sleep(500);
+            //printf("Momentum at %i is =  %f\n", j, solutionMomentum[j]);
  
             //print the x axis label (which is j) and the solution to a text file
             fprintf(densityFile, "%i \t %f\n", j, solutionDensity[j]);
@@ -212,22 +211,33 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
 double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
 {
     double Godunov;
+    double densityLeft;
+    double densityRight;
+    double momentumLeft;
+    double momentumRight;
+    double energyLeft;
+    double energyRight;
+
+
+
     if (Scheme_DME == 1)
     {
-        double densityLeft = RiemannSolver(tempDensity, Scheme_DME, j-1, j);
-        double densityRight = RiemannSolver(tempDensity, Scheme_DME, j, j+1);
+        densityLeft = RiemannSolver(arrayTemp, Scheme_DME, j-1, j);
+        densityRight = RiemannSolver(arrayTemp, Scheme_DME, j, j+1);
+        
 
-        double Godunov = tempDensity[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+        Godunov = arrayTemp[j] - courant * (densityRight - densityLeft);//- 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
     }
 
     else if (Scheme_DME == 2)
     {
-        double momentumLeft = RiemannSolver(tempMomentum, Scheme_DME, j-1, j);
-        double momentumRight = RiemannSolver(tempMomentum, Scheme_DME, j, j+1);
+        momentumLeft = RiemannSolver(arrayTemp, Scheme_DME, j-1, j);
+        momentumRight = RiemannSolver(arrayTemp, Scheme_DME, j, j+1);
 
-        double Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
+        Godunov = arrayTemp[j] - courant * (momentumRight - momentumLeft);
         /*
         printf("here\n");
+        printf("value for arrayTemp at %i is = %f\n",j,arrayTemp[j]);
         printf("value for momentum is = %f\n",Godunov);
         printf("value for momentumLEFT is = %f\n", momentumLeft);
         printf("value for momentumRIGHT is = %f\n", momentumRight);
@@ -235,14 +245,17 @@ double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
         printf("value for courant is = %f\n", courant);
         Sleep(1000);
         */
+        
     }
 
     else if (Scheme_DME == 3)
     {
-        double energyLeft = RiemannSolver(tempEnergy, Scheme_DME, j-1, j);
-        double energyRight = RiemannSolver(tempEnergy, Scheme_DME, j, j+1);
+        energyLeft = RiemannSolver(arrayTemp, Scheme_DME, j-1, j);
+        energyRight = RiemannSolver(arrayTemp, Scheme_DME, j, j+1);
 
-        double Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);
+        Godunov = arrayTemp[j] - courant * (energyRight - energyLeft);
+        //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
+        //Sleep(500);
     }
     
     return Godunov;
@@ -277,22 +290,22 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
      */
     if (Scheme == 1)
     {
-        double EulerLeft = EulerEquationDensity(arrayTemp, Left);
-        double EulerRight = EulerEquationDensity(arrayTemp, Right);
+        EulerLeft = EulerEquationDensity(arrayTemp, Left);
+        EulerRight = EulerEquationDensity(arrayTemp, Right);
 
         //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
     else if (Scheme == 2)
     {
-        double EulerLeft = EulerEquationMomentum(arrayTemp, Left);
-        double EulerRight = EulerEquationMomentum(arrayTemp, Right);
+        EulerLeft = EulerEquationMomentum(arrayTemp, Left);
+        EulerRight = EulerEquationMomentum(arrayTemp, Right);
 
         //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
     else if (Scheme == 3)
     {
-        double EulerLeft = EulerEquationEnergy(arrayTemp, Left);
-        double EulerRight = EulerEquationEnergy(arrayTemp, Right);
+        EulerLeft = EulerEquationEnergy(arrayTemp, Left);
+        EulerRight = EulerEquationEnergy(arrayTemp, Right);
 
         //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
     }
@@ -323,8 +336,7 @@ double EulerEquationDensity(double *tempDensity, int j)
 {
     double solution = 0.5*pow(tempDensity[j],2);
 
-    //return solution;
-    return 2;
+    return solution;
 }
 
 double EulerEquationMomentum(double *tempMomentum, int j)
