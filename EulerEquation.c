@@ -278,6 +278,7 @@ int chooseSlopeLimiter(int n);
  *chooses between the equations for Denstiy, Momentum, Energy
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
+//TODO use adiflux() function from exact_adiabatic.c here for Riemann Solver 
 double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
 {
     double Riemann;
@@ -332,6 +333,7 @@ double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
  *for the density
  *This is used to calculate the flux though a cell wall
  */
+//TODO  Use Euler's Equations here
 double EulerEquationDensity(double *tempDensity, int j)
 {
     double solution = 0.5*pow(tempDensity[j],2);
