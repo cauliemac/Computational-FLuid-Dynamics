@@ -66,7 +66,7 @@ int main ()
     printf("Courant number: %f\n", courant);
     
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 40, 60, 0);
+    getInitialConditions(initialConditions, gridSize, 0, 50, 0);
 
     Sleep(2000);
 
@@ -211,12 +211,9 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
 double GodunovScheme(double *arrayTemp, int j, int Scheme_DME)
 {
     double Godunov;
-    double densityLeft;
-    double densityRight;
-    double momentumLeft;
-    double momentumRight;
-    double energyLeft;
-    double energyRight;
+    double densityLeft; double densityRight;
+    double momentumLeft; double momentumRight;
+    double energyLeft; double energyRight;
 
 
 
@@ -282,8 +279,7 @@ int chooseSlopeLimiter(int n);
 double RiemannSolver(double *arrayTemp, int Scheme, int Left, int Right)
 {
     double Riemann;
-    double EulerLeft;
-    double EulerRight;
+    double EulerLeft; double EulerRight;
 
     /*
      *Changes the variables for the left and right state depending on 
