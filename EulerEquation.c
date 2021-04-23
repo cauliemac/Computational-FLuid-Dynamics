@@ -23,8 +23,7 @@ double courant = timestepSize/gridSpacing; //Courant number for printout
  *double courant is not exactly courant number, 
  *should be (wave speed * timestep)/ gridSpacing
  */
-float gamma = 5/3;
-double pressure = 
+float gamma_val = 5/3;
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
@@ -46,10 +45,10 @@ double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
 double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
 
-double EulerEquationDensity(double *tempDensity, double *tempVelocity, int j);
-double EulerEquationMomentum(double *tempMomentum, double *tempDensity, double *tempEnergy, int j);
-double EulerEquationEnergy(double *tempEnergy, double *tempMomentum, double *tempDensity, int j);
-double pressure(double *tempEnergy, double *tempMomentum, *double tempDensity, int j);
+double EulerEquationDensity(double *tempDensity, int j);
+double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
+double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
+double pressure(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
 
 double RiemannSolver(double *arrayTemp, int Scheme, int j, int k);
 
@@ -345,7 +344,7 @@ double EulerEquationDensity(double *tempDensity, int j)
     return solution;
 }
 
-double EulerEquationMomentum(double *tempMomentum, double *tempDensity, double *tempEnergy, int j)
+double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
 /*
  * (rho *  u^2) + pressure
  * which is q(2)^2 / q(1) + pressure(q)
@@ -358,7 +357,7 @@ double EulerEquationMomentum(double *tempMomentum, double *tempDensity, double *
     return solution;
 }
 
-double EulerEquationEnergy(double *tempEnergy, double *tempMomentum, double *tempDensity, int j)
+double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
 /*
  * (E + pressure) * u
  *
@@ -374,9 +373,9 @@ double EulerEquationEnergy(double *tempEnergy, double *tempMomentum, double *tem
     return solution;
 }
 
-double pressure(double *tempEnergy, double *tempMomentum, *double tempDensity, int j)
+double pressure(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
 {
-    double pressure = tempEnergy[j] * (gamma-1) - 0.5 * pow(tempMomentum[j],2) / tempDensity[j];
+    double pressure = tempEnergy[j] * (gamma_val-1) - 0.5 * pow(tempMomentum[j],2) / tempDensity[j];
 
     return pressure;
 }
