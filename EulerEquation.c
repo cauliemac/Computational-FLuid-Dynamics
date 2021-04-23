@@ -360,14 +360,12 @@ double RiemannSolver(double *tempDensity, double *tempMomentum, double *tempEner
  *for the density
  *This is used to calculate the flux though a cell wall
  */
-//TODO  Use Euler's Equations here
 double EulerEquationDensity(double *tempDensity, int j)
 /*
  * rho * u
  * which is q(2) in leveque, or tempDensity
  */
 {
-    //double solution = 0.5*pow(tempDensity[j],2);
     double solution = tempDensity[j];
 
     return solution;
@@ -379,8 +377,6 @@ double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *
  * which is q(2)^2 / q(1) + pressure(q)
  */
 {
-    //double solution = 0.5*pow(tempMomentum[j],2);
-    //double solution = (tempVelocity[j] * pow(tempDensity[j],2)) + EulerEquationDensity(tempVelocity, tempDensity, j);
     double solution = pow(tempMomentum[j],2) / tempDensity[j] + pressure(tempEnergy, tempMomentum, tempDensity, j);
 
     return solution;
@@ -395,8 +391,6 @@ double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *te
  * which is q(2) * [q(3) pressure(q)] / q(1)
  */
 {
-    //double solution = 0.5*pow(tempEnergy[j],2);
-    //double solution = (EulerEquationDensity(tempVelocity, tempDensity, j)/gamma-1) + 0.5*tempVelocity[j] * pow(tempDensity[j],2)
     double solution = tempMomentum[j] * (tempEnergy[j] + pressure(tempDensity, tempMomentum, tempEnergy, j)) / tempDensity[j];
 
     return solution;
