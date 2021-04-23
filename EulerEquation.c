@@ -233,7 +233,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         momentumLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
         momentumRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
 
-        Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);
+        Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         /*
         printf("here\n");
         printf("value for arrayTemp at %i is = %f\n",j,arrayTemp[j]);
@@ -252,7 +252,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         energyLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
         energyRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
 
-        Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);
+        Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
         //Sleep(500);
     }
