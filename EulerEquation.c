@@ -8,7 +8,7 @@
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
  *                                                            *
- *  g++ EulerEquation.c SlopeLimiters.c -o EulerEquation  *
+ *  g++ EulerEquation.c SlopeLimiters.c -o EulerEquation      *
  *  use line above to compile from multiple .c files          *
  *                                                            *
  **************************************************************/
@@ -17,7 +17,7 @@
 #define gridSize 100 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
-const float timestepSize = 0.01;  //size of each timestep ( also k)
+const float timestepSize = 0.005;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Courant number for printout
 /*
  *double courant is not exactly courant number, 
@@ -242,7 +242,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempMomentum[j] > 0)
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);// - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         }
         else
         {
@@ -269,7 +269,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempEnergy[j] > 0)
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);// - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         }
         else
         {
