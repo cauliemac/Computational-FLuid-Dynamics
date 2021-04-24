@@ -17,7 +17,7 @@
 #define gridSize 100 //size of grid
 const double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
-const float timestepSize = 0.005;  //size of each timestep ( also k)
+const float timestepSize = 0.01;  //size of each timestep ( also k)
 double courant = timestepSize/gridSpacing; //Courant number for printout
 /*
  *double courant is not exactly courant number, 
@@ -124,8 +124,8 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
                 initialConditions[i] = 1;
             }
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
-            fprintf(initial_momentum, " %i \t %f\n", i, initialConditions[i]);
-            fprintf(initial_energy, " %i \t %f\n", i, initialConditions[i]);
+            //fprintf(initial_momentum, " %i \t %f\n", i, initialConditions[i]);
+            //fprintf(initial_energy, " %i \t %f\n", i, initialConditions[i]);
         }
     }
     //memcpy to copy initial conditions onto the solution array
@@ -226,11 +226,11 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         
         if (tempDensity[j] > 0)
         {
-            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) + 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         }
         else
         {
-            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing + timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = 0;
         }
         
     }
@@ -242,11 +242,11 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempMomentum[j] > 0)
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft);// - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         }
         else
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = 0;
         }
         
         /*
@@ -269,11 +269,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempEnergy[j] > 0)
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft);// - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
         }
         else
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = 0;
+            //negative energy is not a physical solution (this case still happens cos of my shit code tho)
         }
         //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
         //Sleep(500);
