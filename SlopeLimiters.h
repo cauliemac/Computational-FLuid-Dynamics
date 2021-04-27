@@ -13,3 +13,6 @@ double slopeLimiter_minmod(double *arrayTemp, int j);
 
 //Van Albada 1 slope limiter
 double slopeLimiter_vanAlbada1(double *arrayTemp, int j);
+
+//Lax Wendoff slope limiter
+double slopeLimiter_LaxWendoff(double *arrayTemp, int j);
