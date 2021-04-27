@@ -4,6 +4,8 @@
 #include <math.h>
 #include <Windows.h>
 #include "SlopeLimiters.h"
+#include <graphics.h>
+#include <dos.h>
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
@@ -223,6 +225,8 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
     {
         densityLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
         densityRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
+
+        //densityLeft = adiflux(j-1, j, gridSpacing, timestepSize, j, 0, 0)
         
         if (tempDensity[j] > 0)
         {
