@@ -238,6 +238,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         else
         {
             Godunov = 0;
+            printf("Error in Riemann Density calculations at j=%i",j);
         }
         
     }
@@ -254,6 +255,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         else
         {
             Godunov = 0;
+            printf("Error in Riemann Momentum calculations at j=%i",j);
         }
         
         /*
@@ -281,6 +283,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         else
         {
             Godunov = 0;
+            printf("Error in Riemann Energy calculations at j=%i",j);
             //negative energy is not a physical solution (this case still happens cos of my shit code tho)
         }
         //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
