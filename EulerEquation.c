@@ -85,6 +85,7 @@ int main ()
  *or a square wave with the peak between a and b as percentages
  *of the whole grid (if sine==0)
  */
+//TODO return error if initial conditions are wrong
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
 {
     //create and open a file in write mode to store the initial conditions
@@ -148,6 +149,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *and prints the values to a text file
  *closes text file
  */
+//TODO seperate opening files to a different funtion
 double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing)
 {
     for (int i = 0; i < evolutions; i++)
@@ -212,6 +214,7 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
+//TODO return errors if values are less than or equal to 0
 double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEnergy, int j, int Scheme_DME)
 {
     double Godunov;
