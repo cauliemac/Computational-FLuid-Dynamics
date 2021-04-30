@@ -188,25 +188,25 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 
 /* First get our primitive variables */
 
-	rhol=left_state.c[0];
-	ul  =left_state.c[perp]/rhol;
-	vl =left_state.c[par1]/rhol;
-	wl =left_state.c[par2]/rhol;
+	rhol=left_state.c[0];//rho left (density ρ)
+	ul  =left_state.c[perp]/rhol;//speed left
+	vl =left_state.c[par1]/rhol;	//TODO DELETE
+	wl =left_state.c[par2]/rhol;	//TODO DELETE
 	pl = pressure(left_state);
-	Bxl =left_state.c[4+perp];
-	Byl =left_state.c[4+par1];
-	Bzl =left_state.c[4+par2];
-	psil =left_state.c[8];
+	Bxl =left_state.c[4+perp];	//TODO DELETE
+	Byl =left_state.c[4+par1];	//TODO DELETE
+	Bzl =left_state.c[4+par2];	//TODO DELETE
+	psil =left_state.c[8];//PSI LEFT (ψ)
 
-	rhor=right_state.c[0];
-	ur  =right_state.c[perp]/rhor;
-	vr =right_state.c[par1]/rhor;
-	wr =right_state.c[par2]/rhor;
+	rhor=right_state.c[0];//rho right (density ρ)
+	ur  =right_state.c[perp]/rhor;//speed right
+	vr =right_state.c[par1]/rhor;	//TODO DELETE
+	wr =right_state.c[par2]/rhor;	//TODO DELETE
 	pr = pressure(right_state);
-	Bxr =right_state.c[4+perp];
-	Byr =right_state.c[4+par1];
-	Bzr =right_state.c[4+par2];
-	psir =right_state.c[8];
+	Bxr =right_state.c[4+perp];	//TODO DELETE
+	Byr =right_state.c[4+par1];	//TODO DELETE
+	Bzr =right_state.c[4+par2];	//TODO DELETE
+	psir =right_state.c[8];//PSI RIGHT (ψ)
 
   /***************************************************************************
    *                                                                         *
@@ -222,16 +222,21 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 
   gamma_calc(GAMMA[0], gl);
   gamma_calc(GAMMA[0], gr);
+  //TODO use a #define to set GAMMA = to 5/3 as we are using a monotomic gas
+  //or just set it to 1.6666 for ease and less accuracy
 
   cl = sqrt(gl[0]*pl*rhol);
   cr = sqrt(gr[0]*pr*rhor);
   wleft = -cl;
   wright = cr;
+
+  //find value of the pressure
   p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
   if(p<= 0.0)
   {
-/*    printf("Negative pressure in linear Riemann solver\n");
-    printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); */
+    //negative pressure cannot exist, so set it to a small number instead
+	printf("Negative pressure in linear Riemann solver\n");
+    printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); 
     p = 1.0e-06;
   }
 
@@ -243,8 +248,10 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 
   /*
    *  Check if we need non-linear Riemann solver
+   *  Will use the non_Linear Solver if the discrepancy between left and right
+   *  states is greater than 10%
    */
-#if NONLINEAR_SOLVER
+//#if NONLINEAR_SOLVER
   if((fabs(p-pl)>0.1*pl || fabs(p-pr)>0.1*pr))  
   {
   /***************************************************************************
