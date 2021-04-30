@@ -4,8 +4,6 @@
 #include <math.h>
 #include <Windows.h>
 #include "SlopeLimiters.h"
-#include <graphics.h>
-#include <dos.h>
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
@@ -26,6 +24,7 @@ double courant = timestepSize/gridSpacing; //Courant number for printout
  *should be (wave speed * timestep)/ gridSpacing
  */
 float gamma_val = 5/3;
+//const int slope_limiter_type = 1   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
@@ -46,6 +45,8 @@ double initialEnergy[gridSize];
 double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
 double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
+
+double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
 
 double EulerEquationDensity(double *tempDensity, int j);
 double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
@@ -233,12 +234,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         
         if (tempDensity[j] > 0)
         {
-            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempDensity,j,1));
         }
         else
         {
             Godunov = 0;
-            printf("Error in Riemann Density calculations at j=%i",j);
+            printf("Error in Riemann Density calculations at j=%i\n",j);
         }
         
     }
@@ -250,12 +251,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempMomentum[j] > 0)
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempMomentum,j,1));
         }
         else
         {
             Godunov = 0;
-            printf("Error in Riemann Momentum calculations at j=%i",j);
+            printf("Error in Riemann Momentum calculations at j=%i\n",j);
         }
         
         /*
@@ -278,12 +279,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempEnergy[j] > 0)
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(slopeLimiter_MC(tempDensity,j));
+            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempEnergy,j,1));
         }
         else
         {
             Godunov = 0;
-            printf("Error in Riemann Energy calculations at j=%i",j);
+            printf("Error in Riemann Energy calculations at j=%i\n",j);
             //negative energy is not a physical solution (this case still happens cos of my shit code tho)
         }
         //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
@@ -294,15 +295,23 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 }
 
 //picks a slope limiter from a list in SlopeLimiters.c
-//TODO get slope limiter picker working
-/*
-int chooseSlopeLimiter(int n);
+double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
 {
-    if (n = 1)
-
-
+    double sigma;
+    if (SlopeType == 1)
+    {
+        sigma = slopeLimiter_MC(tempArray,j);
+    }
+    else if(SlopeType == 2)
+    {
+        sigma = slopeLimiter_minmod(tempArray,j);
+    }
+    else if(SlopeType == 3)
+    {
+        sigma = slopeLimiter_vanAlbada1(tempArray,j);
+    }
+    return sigma;
 }
-*/
 
 /*
  *Returns the exact solution to the Riemann problem between two piecewise states
