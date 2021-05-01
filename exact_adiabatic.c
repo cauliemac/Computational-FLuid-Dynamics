@@ -178,8 +178,8 @@ void gamma_calc(REAL gamma, REAL *g)
  * @param[out] resolved_state Pointer to the resolved state.
  */
 
-void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int par1, int
-		par2, zone *resolved_state){
+void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone *resolved_state)
+{
   
 	extern REAL CFL, GAMMA[N_CHARGED_FLUIDS];
   /*
@@ -187,8 +187,8 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
    */
 	int iter, newt_check, equal_gamma=1;
 	REAL cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3, ch_dedner;
-	REAL rhol, ul, vl, wl, pl, Bxl, Byl, Bzl, psil, rhor, ur, vr, wr, pr, Bxr, Byr, Bzr, psir;
-	REAL density, Bx, By, Bz, psi, c_v;
+	REAL rhol, ul, vl, wl, pl, psil, rhor, ur, vr, wr, pr, psir;
+	REAL density, psi, c_v;
 
 /* First get our primitive variables */
 
@@ -501,35 +501,32 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
  * (if we don't get convergence in our nonlinear solver).  If this
  * happens, just fix it to be the pressure (which is hopefully positive), but 
  * print an error */
-  if(density < 0.0){
-	  fprintf(stderr,"Had to fix density: %e -> %e\n", density, p);
-	  density = p;
+  if(density < 0.0)
+  {
+	fprintf(stderr,"Had to fix density: %e -> %e\n", density, p);
+	density = p;
   }
-  if(isnan(p)){
-		fprintf(stderr,"Got a nan for p\n");
-	  p = 0.5*(pl + pr);
-	  density = 0.5*(rhol + rhor);
-	  u = 0.5*(ul + ur);
-	  v = 0.5*(vl + vr);
-	  w = 0.5*(wl + wr);
-	  Bx = 0.5*(Bxl + Bxr);
-	  By = 0.5*(Byl + Byr);
-	  Bz = 0.5*(Bzl + Bzr);
-	  psi = 0.5*(psil + psir);
+  if(isnan(p))// Checks if the pressure is Not A Number (NAN)
+  {
+	fprintf(stderr,"Got a nan for p\n");
+	p = 0.5*(pl + pr);
+	density = 0.5*(rhol + rhor);
+	u = 0.5*(ul + ur);
+	v = 0.5*(vl + vr);
+	w = 0.5*(wl + wr);
+	Bx = 0.5*(Bxl + Bxr);
+	By = 0.5*(Byl + Byr);
+	Bz = 0.5*(Bzl + Bzr);
+	psi = 0.5*(psil + psir);
   }
 
 /* One thing for Sam's suggestion for artificial dissipation - the
  * resolved sound speed */
 
-	if(u>0.0)
+	if(u > 0.0)
 		c=sqrt(gl[0]*p/(density));
 	else
 		c=sqrt(gr[0]*p/(density));
-
-#if DEDNER
-	Bx = 0.5*( Bxr +Bxl) -0.5*(psir-psil)/ch_dedner;
-	psi = 0.5*(psir + psil) -0.5*ch_dedner*(Bxr-Bxl);
-#endif /* DEDNER */
 
   /*
    *  End of resolved pressure, velocities and density calculation
@@ -539,13 +536,9 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 
 	(*resolved_state).c[0] = density;
 	(*resolved_state).c[perp] = u;
-	(*resolved_state).c[par1] = v;
-	(*resolved_state).c[par2] = w;
+
 	(*resolved_state).c[4] = p;
-	(*resolved_state).c[4+perp] = Bx;
-	(*resolved_state).c[4+par1] = By;
-	(*resolved_state).c[4+par2] = Bz;
 	(*resolved_state).c[8] = psi;
 	(*resolved_state).c_v = c_v;
 }
-#endif /* ADIABATIC */
+//#endif /* ADIABATIC */
