@@ -78,6 +78,7 @@ int main ()
     //call AllEvolutions to run
     AllEvolutions(solutionDensity, solutionMomentum, solutionEnergy, evolutions, courant, gridSpacing);
    
+    system("pause");
     return 0;
 }
 
