@@ -24,7 +24,24 @@ double courant = timestepSize/gridSpacing; //Courant number for printout
  *should be (wave speed * timestep)/ gridSpacing
  */
 float gamma_val = 5/3;
-//const int slope_limiter_type = 1   //1 for MC, 2 for Minmod, 3 for Van Albada 1
+const int slope_limiter_type = 1   //1 for MC, 2 for Minmod, 3 for Van Albada 1
+
+/*
+//testing out structures for holding the data
+typedef struct
+{
+    double solutionPressure[gridSize];
+    double solutionDensity[gridSize];
+    double solutionVelocity[gridSize];
+}solution_cell_state;
+
+typedef struct
+{
+    double tempPressure[gridSize];
+    double tempDensity[gridSize];
+    double tempVelocity[gridSize];
+}temp_cell_state;
+*/
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
@@ -221,7 +238,6 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-//TODO return errors if values are less than or equal to 0
 double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEnergy, int j, int Scheme_DME)
 {
     double Godunov;
@@ -240,7 +256,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         
         if (tempDensity[j] > 0)
         {
-            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempDensity,j,1));
+            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempDensity,j,slope_limiter_type));
         }
         else
         {
@@ -257,7 +273,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempMomentum[j] > 0)
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempMomentum,j,1));
+            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempMomentum,j,slope_limiter_type));
         }
         else
         {
@@ -285,7 +301,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
         if (tempEnergy[j] > 0)
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempEnergy,j,1));
+            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempEnergy,j,slope_limiter_type));
         }
         else
         {
