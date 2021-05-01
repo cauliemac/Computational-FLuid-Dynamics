@@ -54,7 +54,7 @@ void func_newt(double x,double *f, double *df, double t1, double t2, double t3, 
  * @param[in] newt_check A flag to check whether we converged.
  */
 
-double newt(double x, double xmin, double xmax, double t1, double t2, double t3, double *gl, double *gr, int *newt_check)
+double newt(double x, double xmin, double xmax, double t1, double t2, double t3, double gl, double gr, int *newt_check)
 {
 	int j;
 	double df,dx,f,rtn,greater;
@@ -264,7 +264,7 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
 				t2=2.0*cr/(rhor*gr*pow(pr,gr));//right going wave
 				t3=ul-ur+2.0*((cr/(rhor*gr))+(cl/(rhol*gl)));//if left going wave is heading right relative to gas
 
-				p=mymin(pl,pr); // Simple first estimate for p
+				p=fmin(pl,pr); // Simple first estimate for p
 
 				p=newt(p,0.0,1.0e+10*pr, t1, t2, t3, gl, gr, &newt_check);
 				if(newt_check) /* rtnewt has failed for function or #iter */
@@ -336,7 +336,7 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
      * Contact is on right of interface
      */
     density = wleft*rhol/(wleft - (u -ul)*rhol);
-	
+
 	psi = psil;
 
 	//g5 = gl;
