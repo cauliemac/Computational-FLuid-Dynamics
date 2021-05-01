@@ -160,7 +160,8 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
  * @param[out] resolved_state Pointer to the resolved state.
  */
 
-void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
+//void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
+void adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 {
   
 	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
@@ -169,20 +170,18 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
    */
 	int iter, newt_check, equal_gamma=1;
 	double cl,cr,wleft,wright,u,v,w,c,ci,p,pi,gl,gr, t1, t2, t3;
-	double rhol, ul, pl, psil, rhor, ur, pr, psir;
-	double density, psi, c_v;
+	double rhol, ul, pl, rhor, ur, pr;
+	double density, c_v;
 
 /* First get our primitive variables */
 
-	rhol=left_state.c[0];//rho left (density ρ)
-	ul  =left_state.c[perp]/rhol;//speed left
-	pl = pressure(left_state);
-	psil =left_state.c[8];//PSI LEFT (ψ)
+	rhol=tempDensity[Left];//rho left (density ρ)
+	ul  =tempVelocity[Left]/rhol;//speed left
+	pl = tempPressure[Left];// pressure left
 
-	rhor=right_state.c[0];//rho right (density ρ)
-	ur  =right_state.c[perp]/rhor;//speed right
-	pr = pressure(right_state);
-	psir =right_state.c[8];//PSI RIGHT (ψ)
+	rhor=tempDensity[Right];//rho right (density ρ)
+	ur  =tempVelocity[Right]/rhor;//speed right
+	pr = tempPressure[Right];// pressure right
 
   /***************************************************************************
    *                                                                         *
@@ -337,8 +336,6 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
      */
     density = wleft*rhol/(wleft - (u -ul)*rhol);
 
-	psi = psil;
-
 	//g5 = gl;
 	c_v = 1.0/(gl-1.0);
     
@@ -401,8 +398,6 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
      * Contact is on left of interface
      */
     density = wright*rhor/(wright - (u - ur)*rhor);
-
-	 psi = psir;
 
 	 //g5 = gr[5];
 	 c_v = 1.0/(gr-1.0);
@@ -475,7 +470,6 @@ void adiflux(double left_state, double right_state, double dx, double dt, int pe
 	p = 0.5*(pl + pr);
 	density = 0.5*(rhol + rhor);
 	u = 0.5*(ul + ur);
-	psi = 0.5*(psil + psir);
   }
 
 /* One thing for Sam's suggestion for artificial dissipation - the
