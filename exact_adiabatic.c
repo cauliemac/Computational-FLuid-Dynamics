@@ -30,8 +30,8 @@
  * @param[in] gl Pointer to array of functions of \gamma in left state
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
-void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2, 
-		REAL t3, REAL *gl, REAL *gr){
+void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+{
 
 	*f=t1*pow(x,gl[4])+t2*pow(x,gr[4])-t3;
 
@@ -52,15 +52,15 @@ void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2,
  * @param[in] newt_check A flag to check whether we converged.
  */
 
-REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2, 
-		REAL t3, REAL *gl, REAL *gr, int *newt_check)
+REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr, int *newt_check)
 {
 	int j;
 	REAL df,dx,f,rtn,greater;
 
 	rtn=x;
 	*newt_check=0;
-	for (j=1;j<=JMAX;j++) {
+	for (j=1;j<=JMAX;j++)
+	{
 		func_newt(rtn,&f,&df, t1, t2, t3, gl, gr);
 		dx=f/df;
 		if(dx>0.0) greater=rtn;
@@ -74,7 +74,8 @@ REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2,
 		if ((xmin-rtn)*(rtn-xmax) < 0.0)
 			tc_error("Jumped out of brackets in RTNEWT", 1);
 		if (fabs(dx/rtn) < 1.0e-06) return rtn;
-		if (fabs(rtn/t3) < 1.0e-10){  /* If the function is crap */
+		if (fabs(rtn/t3) < 1.0e-10)// If the function is crap
+		{
 			*newt_check=1;
 			rtn=greater;
 			printf("Switching to bisection\n");
@@ -96,8 +97,8 @@ REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2,
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
 
-REAL func_bis(REAL x, REAL t1, REAL t2, REAL t3, REAL *gl, 
-		REAL *gr){
+REAL func_bis(REAL x, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+{
 
 	REAL f;
 
@@ -120,20 +121,22 @@ REAL func_bis(REAL x, REAL t1, REAL t2, REAL t3, REAL *gl,
  */
 
 
-REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3, 
-		REAL *gl, REAL *gr){
+REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+{
 
 	int j;
 	REAL dx,f,fmid,xmid,rtb;
 
 	f=func_bis(x1, t1, t2, t3, gl, gr);
 	fmid=func_bis(x2, t1, t2, t3, gl, gr);
-	if (f*fmid >= 0.0){
+	if (f*fmid >= 0.0)
+	{
 		rtb=x2*1.0e+10;
 		return (rtb);
 	}
 	rtb = f < 0.0 ? (dx=x2-x1,x1) : (dx=x1-x2,x2);
-	for (j=1;j<=JMAX;j++) {
+	for (j=1;j<=JMAX;j++)
+	{
 		fmid=func_bis(xmid=rtb+(dx *= 0.5), t1, t2, t3, gl, gr);
 		if (fmid <= 0.0) rtb=xmid;
 		if (fabs(dx/rtb) < xacc || fmid == 0.0) return rtb;
@@ -147,7 +150,8 @@ REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3,
  * @param[in] gamma The value of c_p/c_v
  * @param[in] g Pointer to an array to contain the various functions of gamma
  */
-void gamma_calc(REAL gamma, REAL *g){
+void gamma_calc(REAL gamma, REAL *g)
+{
 	g[0]=gamma;
 	g[1]=g[0]-1.0;
 	g[2]=g[0]/g[1];
@@ -254,40 +258,42 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 //#if NONLINEAR_SOLVER
   if((fabs(p-pl)>0.1*pl || fabs(p-pr)>0.1*pr))  
   {
-  /***************************************************************************
-   *                                                                         *
-   *                       Non-linear Riemann solver                         *
-   *                                                                         *
-   ***************************************************************************/
+     /***************************************************************************
+      *                                                                         *
+      *                       Non-linear Riemann solver                         *
+      *                                                                         *
+      ***************************************************************************/
 
-		if((p < pl) && (p < pr)){
+		if((p < pl) && (p < pr))
+		{
 
       /*
        * Non-iterative solution for two rarefactions
        */
-			if(equal_gamma){  /* Note that gl and gr are the same by def */
+			if(equal_gamma)// Note that gl and gr are the same by def
+			{
 				ci = cr/(rhor*pow(pr,gr[4]));
-				p = (0.5*gr[1]*(ul - ur) + cr/rhor + cl/rhol)/(ci + 
-					cl/(rhol*pow(pl,gr[4])));
+				p = (0.5*gr[1]*(ul - ur) + cr/rhor + cl/rhol)/(ci + cl/(rhol*pow(pl,gr[4])));
 
-				if(p<0.0){ /* Gas is expanding to form a vacuum (bad news!) */
-/*					printf("Negative pressures in rarefaction solver: %lf\n",
-						pow(-p,gr[5]));  */
+				if(p<0.0) // Gas is expanding to form a vacuum (bad news!)
+				{
+					printf("Negative pressures in rarefaction solver: %lf\n",pow(-p,gr[5]));
 					p=5.0e-11*(pr+pl); 
 				}
 				
 				else 
 					p = pow(p,gr[5]);
 			}
-			else{ /* Have to do rarefactions with different gammas */
+			else // Have to do rarefactions with different gammas
+			{
 
-/* Calculate the constants for the iteration */
+				/* Calculate the constants for the iteration */
 
-				t1=2.0*cl/(rhol*gl[1]*pow(pl,gl[4]));
-				t2=2.0*cr/(rhor*gr[1]*pow(pr,gr[4]));
-				t3=ul-ur+2.0*((cr/(rhor*gr[1]))+(cl/(rhol*gl[1])));
+				t1=2.0*cl/(rhol*gl[1]*pow(pl,gl[4]));//left going wave
+				t2=2.0*cr/(rhor*gr[1]*pow(pr,gr[4]));//right going wave
+				t3=ul-ur+2.0*((cr/(rhor*gr[1]))+(cl/(rhol*gl[1])));//if left going wave is heading right relative to gas
 
-				p=mymin(pl,pr);    /* Simple first estimate for p */
+				p=mymin(pl,pr); // Simple first estimate for p
 
 				p=newt(p,0.0,1.0e+10*pr, t1, t2, t3, gl, gr, &newt_check);
 				if(newt_check) /* rtnewt has failed for function or #iter */
@@ -295,7 +301,8 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 
 			}
 		}
-    else{
+    else
+	{
       /* 
        * Iterative solution for shock/rarefaction 
        *
@@ -314,7 +321,8 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
        *        End of initialisation
        */
 
-      while(fabs((p-pi)/p) > 0.1 && iter < 20){
+      while(fabs((p-pi)/p) > 0.1 && iter < 20)
+	  {
    		pi = p;
 			wleft = -cl*wave(p,pl,gl);
 			wright = cr*wave(p,pr,gr);
@@ -323,10 +331,9 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
 				p=1.0e-10; /* if <0 treat it as zero */
 			++iter;
       }
-      if(iter >= 20) {
-	printf("Convergence failure in Riemann solver: pr=%e pl=%e p=%e\n",
-	       pr, pl, p);
-	
+      if(iter >= 20)
+	  {
+		printf("Convergence failure in Riemann solver: pr=%e pl=%e p=%e\n", pr, pl, p);
       }
 
       /*
@@ -334,7 +341,7 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
        */
     }
   }
-#endif /* NONLINEAR_SOLVER */
+//#endif /* NONLINEAR_SOLVER */
 
   /*
    * Start calculation of resolved density and velocity
@@ -359,14 +366,14 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
      */
     density = wleft*rhol/(wleft - (u -ul)*rhol);
     v = vl;
-	 w = wl;
-	 Bx = Bxl;
-	 By = Byl;
-	 Bz = Bzl;
-	 psi = psil;
+	w = wl;
+	Bx = Bxl;
+	By = Byl;
+	Bz = Bzl;
+	psi = psil;
 
-	 g5 = gl[5];
-	 c_v = 1.0/(gl[0]-1.0);
+	g5 = gl[5];
+	c_v = 1.0/(gl[0]-1.0);
     
     /*
      * Check velocity of left waves
@@ -376,7 +383,7 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
       /*
        * Left wave is rarefaction
        */
-      c = sqrt(gl[0]*p/(density));
+      c = sqrt(gl[0]*p/(density));//speed of sound
       
       if((u-c) > 0.0) 
       {
@@ -445,7 +452,7 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, int 
       /*
        * Right wave is rarefaction
        */
-      c = sqrt(gr[0]*p/(density));
+      c = sqrt(gr[0]*p/(density));//speed of sound
       if((u+c) < 0.0)
       {
 	/*

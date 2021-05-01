@@ -122,11 +122,11 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 
             if (i >= a_ratio && i <= b_ratio)   
             {
-                initialConditions[i] = 2;
+                initialConditions[i] = 0.5;
             }
             else
             {
-                initialConditions[i] = 1;
+                initialConditions[i] = 0.2;
             }
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
             //fprintf(initial_momentum, " %i \t %f\n", i, initialConditions[i]);
