@@ -78,6 +78,11 @@ int main ()
     //call AllEvolutions to run
     AllEvolutions(solutionDensity, solutionMomentum, solutionEnergy, evolutions, courant, gridSpacing);
    
+    for(int i=0; i<=100; ++i)
+    {
+        printf("\r[%3d%%]",i);
+    } 
+    printf("\n");
     system("pause");
     return 0;
 }

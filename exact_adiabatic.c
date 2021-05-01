@@ -150,17 +150,17 @@ REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3, REAL *gl, REAL 
  * @param[in] gamma The value of c_p/c_v
  * @param[in] g Pointer to an array to contain the various functions of gamma
  */
-void gamma_calc(REAL gamma, REAL *g)
+void gamma_calc(REAL gamma, REAL *g)// just return all as the same, since we have a monatomic gas
 {
 	g[0]=gamma;
-	g[1]=g[0]-1.0;
-	g[2]=g[0]/g[1];
-	g[3]=0.5*(g[0]+1.0)/g[0];
-	g[4]=0.5*g[1]/g[0];
-	g[5]=1.0/g[4];
-	g[6]=1.0/g[0];
-	g[7]=2.0/g[1];
-	g[8]=g[1]/(g[0]+1.0);
+	g[1]=gamma;
+	g[2]=gamma;
+	g[3]=gamma;
+	g[4]=gamma;
+	g[5]=gamma;
+	g[6]=gamma;
+	g[7]=gamma;
+	g[8]=gamma;
 }
 
 /*! Calculates the resolved state given the left and right states. 
@@ -172,9 +172,6 @@ void gamma_calc(REAL gamma, REAL *g)
  * @param[in] left_state State to the left of the interface
  * @param[in] right_state State to the right of the interface
  * @param[in] perp Direction normal to interface
- * @param[in] par1 Direction parallel to interface (maintaining right-handed system)
- * @param[in] par2 Other direction parallel to interface (maintaining right-handed
- * system)
  * @param[out] resolved_state Pointer to the resolved state.
  */
 
@@ -186,30 +183,20 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone
    * Local variables:-
    */
 	int iter, newt_check, equal_gamma=1;
-	REAL cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3, ch_dedner;
-	REAL rhol, ul, vl, wl, pl, psil, rhor, ur, vr, wr, pr, psir;
+	REAL cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3;
+	REAL rhol, ul, pl, psil, rhor, ur, pr, psir;
 	REAL density, psi, c_v;
 
 /* First get our primitive variables */
 
 	rhol=left_state.c[0];//rho left (density ρ)
 	ul  =left_state.c[perp]/rhol;//speed left
-	vl =left_state.c[par1]/rhol;	//TODO DELETE
-	wl =left_state.c[par2]/rhol;	//TODO DELETE
 	pl = pressure(left_state);
-	Bxl =left_state.c[4+perp];	//TODO DELETE
-	Byl =left_state.c[4+par1];	//TODO DELETE
-	Bzl =left_state.c[4+par2];	//TODO DELETE
 	psil =left_state.c[8];//PSI LEFT (ψ)
 
 	rhor=right_state.c[0];//rho right (density ρ)
 	ur  =right_state.c[perp]/rhor;//speed right
-	vr =right_state.c[par1]/rhor;	//TODO DELETE
-	wr =right_state.c[par2]/rhor;	//TODO DELETE
 	pr = pressure(right_state);
-	Bxr =right_state.c[4+perp];	//TODO DELETE
-	Byr =right_state.c[4+par1];	//TODO DELETE
-	Bzr =right_state.c[4+par2];	//TODO DELETE
 	psir =right_state.c[8];//PSI RIGHT (ψ)
 
   /***************************************************************************
