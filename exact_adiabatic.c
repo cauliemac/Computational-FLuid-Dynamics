@@ -15,10 +15,9 @@
 #include "typedefs.h"
 #include "functions.h"	
 
-//#if ADIABATIC
 
-#define JMAX 20
-#define gamma = 5/3
+#define JMAX 20 //max amount of iterations for Newton-Ralphson iterator
+#define gamma = 5/3 //value of gamma for monatomic gas
 
 /*! Newton-Raphson support function for calculating f and df
  *
@@ -31,7 +30,7 @@
  * @param[in] gl Pointer to array of functions of \gamma in left state
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
-void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+void func_newt(double x,double *f, double *df, double t1, double t2, double t3, double *gl, double *gr)
 {
 
 	*f=t1*pow(x,gl[4])+t2*pow(x,gr[4])-t3;
@@ -53,10 +52,10 @@ void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2, REAL t3, REAL *gl, RE
  * @param[in] newt_check A flag to check whether we converged.
  */
 
-REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr, int *newt_check)
+double newt(double x, double xmin, double xmax, double t1, double t2, double t3, double *gl, double *gr, int *newt_check)
 {
 	int j;
-	REAL df,dx,f,rtn,greater;
+	double df,dx,f,rtn,greater;
 
 	rtn=x;
 	*newt_check=0;
@@ -98,10 +97,10 @@ REAL newt(REAL x, REAL xmin, REAL xmax, REAL t1, REAL t2, REAL t3, REAL *gl, REA
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
 
-REAL func_bis(REAL x, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+double func_bis(double x, double t1, double t2, double t3, double *gl, double *gr)
 {
 
-	REAL f;
+	double f;
 
 	f=t1*pow(x,gl[4])+t2*pow(x,gr[4])-t3;
 
@@ -122,11 +121,11 @@ REAL func_bis(REAL x, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
  */
 
 
-REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr)
+double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, double *gl, double *gr)
 {
 
 	int j;
-	REAL dx,f,fmid,xmid,rtb;
+	double dx,f,fmid,xmid,rtb;
 
 	f=func_bis(x1, t1, t2, t3, gl, gr);
 	fmid=func_bis(x2, t1, t2, t3, gl, gr);
@@ -151,7 +150,7 @@ REAL rtbis(REAL x1,REAL x2,REAL xacc, REAL t1, REAL t2, REAL t3, REAL *gl, REAL 
  * @param[in] gamma The value of c_p/c_v
  * @param[in] g Pointer to an array to contain the various functions of gamma
  */
-void gamma_calc(REAL gamma, REAL *g)// just return all as the same, since we have a monatomic gas
+void gamma_calc(double gamma, double *g)// just return all as the same, since we have a monatomic gas
 {
 	g[0]=gamma;
 	g[1]=gamma;
@@ -164,7 +163,7 @@ void gamma_calc(REAL gamma, REAL *g)// just return all as the same, since we hav
 	g[8]=gamma;
 }
 
-/*! Calculates the resolved state given the left and right states. 
+/*! Calculates the resolved state given the left and right states.
  *
  *  This is based on the notes from Sam Falle, used in the 3D hydro code of T Downes.  It
  *  is a non-linear adiabatic Riemann solver extended to allow for differences in the
@@ -176,17 +175,17 @@ void gamma_calc(REAL gamma, REAL *g)// just return all as the same, since we hav
  * @param[out] resolved_state Pointer to the resolved state.
  */
 
-void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone *resolved_state)
+void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, zone *resolved_state)
 {
   
-	extern REAL CFL, GAMMA[N_CHARGED_FLUIDS];
+	extern double CFL, GAMMA[N_CHARGED_FLUIDS];
   /*
    * Local variables:-
    */
 	int iter, newt_check, equal_gamma=1;
-	REAL cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3;
-	REAL rhol, ul, pl, psil, rhor, ur, pr, psir;
-	REAL density, psi, c_v;
+	double cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3;
+	double rhol, ul, pl, psil, rhor, ur, pr, psir;
+	double density, psi, c_v;
 
 /* First get our primitive variables */
 
@@ -243,7 +242,7 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone
    *  Will use the non_Linear Solver if the discrepancy between left and right
    *  states is greater than 10%
    */
-//#if NONLINEAR_SOLVER
+
   if((fabs(p-pl)>0.1*pl || fabs(p-pr)>0.1*pr))  
   {
      /***************************************************************************
@@ -329,7 +328,7 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone
        */
     }
   }
-//#endif /* NONLINEAR_SOLVER */
+
 
   /*
    * Start calculation of resolved density and velocity
@@ -529,4 +528,3 @@ void adiflux(zone left_state, zone right_state, REAL dx, REAL dt, int perp, zone
 	(*resolved_state).c[8] = psi;
 	(*resolved_state).c_v = c_v;
 }
-//#endif /* ADIABATIC */
