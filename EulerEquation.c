@@ -251,6 +251,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
     {
         densityLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
         densityRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
+        adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 
         //densityLeft = adiflux(j-1, j, gridSpacing, timestepSize, j, 0, 0)
         

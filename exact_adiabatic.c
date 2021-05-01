@@ -19,8 +19,6 @@
 #define JMAX 20 //max amount of iterations for Newton-Ralphson iterator
 #define gamma 5/3 //value of gamma for monatomic gas
 
-double resolved_state[];
-
 /*! Newton-Raphson support function for calculating f and df
  *
  * @param[in] x Argument at which f and df are to be evaluated.
@@ -487,7 +485,7 @@ void adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, in
    */
 
 	
-	resolved_state = [density,u,p,psi,c_v];
+	resolved_state = [density,u,p,c_v];
 	/*
 	(*resolved_state).c[0] = density;
 	(*resolved_state).c[perp] = u;
