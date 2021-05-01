@@ -18,6 +18,7 @@
 //#if ADIABATIC
 
 #define JMAX 20
+#define gamma = 5/3
 
 /*! Newton-Raphson support function for calculating f and df
  *
