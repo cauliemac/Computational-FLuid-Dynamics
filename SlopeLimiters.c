@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include"SlopeLimiters.h"
+#include"functions.h"
 
 //Monotonized Central slope limiter
 double slopeLimiter_MC(double *arrayTemp, int j)

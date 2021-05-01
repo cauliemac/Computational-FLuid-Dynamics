@@ -11,13 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "defs.h"
-#include "typedefs.h"
+//#include "defs.h"
+//#include "typedefs.h"
 #include "functions.h"	
 
 
 #define JMAX 20 //max amount of iterations for Newton-Ralphson iterator
-#define gamma = 5/3 //value of gamma for monatomic gas
+#define gamma 5/3 //value of gamma for monatomic gas
+
+double resolved_state[];
 
 /*! Newton-Raphson support function for calculating f and df
  *
@@ -72,7 +74,7 @@ double newt(double x, double xmin, double xmax, double t1, double t2, double t3,
 			rtn=(rtn+dx)/2.0;
 
 		if ((xmin-rtn)*(rtn-xmax) < 0.0)
-			tc_error("Jumped out of brackets in RTNEWT", 1);
+			printf("Jumped out of brackets in RTNEWT");
 		if (fabs(dx/rtn) < 1.0e-06) return rtn;
 		if (fabs(rtn/t3) < 1.0e-10)// If the function is crap
 		{
@@ -141,27 +143,10 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
 		if (fmid <= 0.0) rtb=xmid;
 		if (fabs(dx/rtb) < xacc || fmid == 0.0) return rtb;
 	}
-	tc_error("Too many bisections in rtbis", 1);
+	printf("Too many bisections in rtbis");
 	return 0.0;
 }
 
-/*! Calculates various functions of gamma, the ratio of specific heats
- *
- * @param[in] gamma The value of c_p/c_v
- * @param[in] g Pointer to an array to contain the various functions of gamma
- */
-void gamma_calc(double gamma, double *g)// just return all as the same, since we have a monatomic gas
-{
-	g[0]=gamma;
-	g[1]=gamma;
-	g[2]=gamma;
-	g[3]=gamma;
-	g[4]=gamma;
-	g[5]=gamma;
-	g[6]=gamma;
-	g[7]=gamma;
-	g[8]=gamma;
-}
 
 /*! Calculates the resolved state given the left and right states.
  *
@@ -175,15 +160,15 @@ void gamma_calc(double gamma, double *g)// just return all as the same, since we
  * @param[out] resolved_state Pointer to the resolved state.
  */
 
-void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, zone *resolved_state)
+void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
 {
   
-	extern double CFL, GAMMA[N_CHARGED_FLUIDS];
+	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
   /*
    * Local variables:-
    */
 	int iter, newt_check, equal_gamma=1;
-	double cl,cr,wleft,wright,u,v,w,c,ci,p,pi,g5, gl[9], gr[9], t1, t2, t3;
+	double cl,cr,wleft,wright,u,v,w,c,ci,p,pi,gl,gr, t1, t2, t3;
 	double rhol, ul, pl, psil, rhor, ur, pr, psir;
 	double density, psi, c_v;
 
@@ -211,13 +196,12 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
  * the domain, though most coding is in place to avoid this
  * assumption. */
 
-  gamma_calc(GAMMA[0], gl);
-  gamma_calc(GAMMA[0], gr);
-  //TODO use a #define to set GAMMA = to 5/3 as we are using a monotomic gas
-  //or just set it to 1.6666 for ease and less accuracy
+  //no need for gamma_calc cos monatomic
+  gl = gamma; //gamma left
+  gr = gamma; //gamma right
 
-  cl = sqrt(gl[0]*pl*rhol);
-  cr = sqrt(gr[0]*pr*rhor);
+  cl = sqrt(gl*pl*rhol);
+  cr = sqrt(gr*pr*rhor);
   wleft = -cl;
   wright = cr;
 
@@ -259,26 +243,26 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
        */
 			if(equal_gamma)// Note that gl and gr are the same by def
 			{
-				ci = cr/(rhor*pow(pr,gr[4]));
-				p = (0.5*gr[1]*(ul - ur) + cr/rhor + cl/rhol)/(ci + cl/(rhol*pow(pl,gr[4])));
+				ci = cr/(rhor*pow(pr,gr));
+				p = (0.5*gr*(ul - ur) + cr/rhor + cl/rhol)/(ci + cl/(rhol*pow(pl,gr)));
 
 				if(p<0.0) // Gas is expanding to form a vacuum (bad news!)
 				{
-					printf("Negative pressures in rarefaction solver: %lf\n",pow(-p,gr[5]));
+					printf("Negative pressures in rarefaction solver: %lf\n",pow(-p,gr));
 					p=5.0e-11*(pr+pl); 
 				}
 				
 				else 
-					p = pow(p,gr[5]);
+					p = pow(p,gr);
 			}
 			else // Have to do rarefactions with different gammas
 			{
 
 				/* Calculate the constants for the iteration */
 
-				t1=2.0*cl/(rhol*gl[1]*pow(pl,gl[4]));//left going wave
-				t2=2.0*cr/(rhor*gr[1]*pow(pr,gr[4]));//right going wave
-				t3=ul-ur+2.0*((cr/(rhor*gr[1]))+(cl/(rhol*gl[1])));//if left going wave is heading right relative to gas
+				t1=2.0*cl/(rhol*gl*pow(pl,gl));//left going wave
+				t2=2.0*cr/(rhor*gr*pow(pr,gr));//right going wave
+				t3=ul-ur+2.0*((cr/(rhor*gr))+(cl/(rhol*gl)));//if left going wave is heading right relative to gas
 
 				p=mymin(pl,pr); // Simple first estimate for p
 
@@ -352,15 +336,11 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
      * Contact is on right of interface
      */
     density = wleft*rhol/(wleft - (u -ul)*rhol);
-    v = vl;
-	w = wl;
-	Bx = Bxl;
-	By = Byl;
-	Bz = Bzl;
+	
 	psi = psil;
 
-	g5 = gl[5];
-	c_v = 1.0/(gl[0]-1.0);
+	//g5 = gl;
+	c_v = 1.0/(gl-1.0);
     
     /*
      * Check velocity of left waves
@@ -370,7 +350,7 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
       /*
        * Left wave is rarefaction
        */
-      c = sqrt(gl[0]*p/(density));//speed of sound
+      c = sqrt(gl*p/(density));//speed of sound
       
       if((u-c) > 0.0) 
       {
@@ -384,9 +364,9 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
 	   * Head of rarefaction is on left of interface
 	   * Left rarefaction spans interface
 	   */
-	  u = gl[8]*(ul +gl[7]*cl);
-	  p = pl*pow((u/cl),gl[5]);
-	  density = gl[0]*p/(u*u);
+	  u = gl*(ul +gl*cl);
+	  p = pl*pow((u/cl),gl);
+	  density = gl*p/(u*u);
 	}
 	else
 	{
@@ -421,15 +401,11 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
      * Contact is on left of interface
      */
     density = wright*rhor/(wright - (u - ur)*rhor);
-    v = vr;
-    w = wr;
-	 Bx = Bxr;
-	 By = Byr;
-	 Bz = Bzr;
+
 	 psi = psir;
 
-	 g5 = gr[5];
-	 c_v = 1.0/(gr[0]-1.0);
+	 //g5 = gr[5];
+	 c_v = 1.0/(gr-1.0);
     
     /*
      * Check velocity of right waves
@@ -439,7 +415,7 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
       /*
        * Right wave is rarefaction
        */
-      c = sqrt(gr[0]*p/(density));//speed of sound
+      c = sqrt(gr*p/(density));//speed of sound
       if((u+c) < 0.0)
       {
 	/*
@@ -452,9 +428,9 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
 	   * Head of rarefaction is on right of interface 
 	   * Right rarefaction spans interface
 	   */
-	  u = gr[8]*(ur - gr[7]*cr);
-	  p = pr*pow((-u/cr),gr[5]);
-	  density = gr[0]*p/(u*u);
+	  u = gr*(ur - gr*cr);
+	  p = pr*pow((-u/cr),gr);
+	  density = gr*p/(u*u);
 	}
 	else
 	{
@@ -499,11 +475,6 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
 	p = 0.5*(pl + pr);
 	density = 0.5*(rhol + rhor);
 	u = 0.5*(ul + ur);
-	v = 0.5*(vl + vr);
-	w = 0.5*(wl + wr);
-	Bx = 0.5*(Bxl + Bxr);
-	By = 0.5*(Byl + Byr);
-	Bz = 0.5*(Bzl + Bzr);
 	psi = 0.5*(psil + psir);
   }
 
@@ -511,9 +482,9 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
  * resolved sound speed */
 
 	if(u > 0.0)
-		c=sqrt(gl[0]*p/(density));
+		c=sqrt(gl*p/(density));
 	else
-		c=sqrt(gr[0]*p/(density));
+		c=sqrt(gr*p/(density));
 
   /*
    *  End of resolved pressure, velocities and density calculation
@@ -521,10 +492,14 @@ void adiflux(zone left_state, zone right_state, double dx, double dt, int perp, 
    * Calculate fluxes in resolved state
    */
 
+	
+	resolved_state = [density,u,p,psi,c_v];
+	/*
 	(*resolved_state).c[0] = density;
 	(*resolved_state).c[perp] = u;
 
 	(*resolved_state).c[4] = p;
 	(*resolved_state).c[8] = psi;
 	(*resolved_state).c_v = c_v;
+	*/
 }

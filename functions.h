@@ -18,7 +18,7 @@ double slopeLimiter_vanAlbada1(double *arrayTemp, int j);
 double slopeLimiter_LaxWendoff(double *arrayTemp, int j);
 
 //Newton-Raphson support function for calculating f and df
-void func_newt(REAL x,REAL *f, REAL *df, REAL t1, REAL t2, REAL t3, REAL *gl, REAL *gr);
+void func_newt(double x,double *f, double *df, double t1, double t2, double t3, double *gl, double *gr);
 
 //Newton-Raphson iterator
 double newt(double x, double xmin, double xmax, double t1, double t2, double t3, double *gl, double *gr, int *newt_check);

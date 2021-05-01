@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <Windows.h>
-#include "SlopeLimiters.h"
+#include "functions.h"
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
