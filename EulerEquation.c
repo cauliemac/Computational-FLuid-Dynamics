@@ -45,34 +45,34 @@ typedef struct
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
-double solutionMomentum[gridSize];
-double solutionEnergy[gridSize];
+double solutionPressure[gridSize];
+double solutionVelocity[gridSize];
 
 //creates three temp holding arrays for Mass, Momentum, and Energy
 double tempDensity[gridSize];
-double tempMomentum[gridSize];
-double tempEnergy[gridSize];
+double tempPressure[gridSize];
+double tempVelocity[gridSize];
 
 //creates three initial conditions arrays for Mass, Momentum, and Energy
 double initialDensity[gridSize];
-double initialMomentum[gridSize];
-double initialEnergy[gridSize];
+double initialPressure[gridSize];
+double initialVelocity[gridSize];
 
 //declaring the functions
 double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
-double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *solutionEnergy, int evolutions, double courant, double gridSpacing);
+double AllEvolutions(double *solutionDensity, double *solutionPressure, double *solutionVelocity, int evolutions, double courant, double gridSpacing);
 
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
 
 double EulerEquationDensity(double *tempDensity, int j);
-double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
-double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
-double pressure(double *tempDensity, double *tempMomentum, double *tempEnergy, int j);
+double EulerEquationMomentum(double *tempDensity, double *tempPressure, double *tempvelocity, int j);
+double EulerEquationEnergy(double *tempDensity, double *tempPressure, double *tempVelocity, int j);
+double pressure(double *tempDensity, double *tempPressure, double *tempVelocity, int j);
 
-double RiemannSolver(double *tempDensity, double *tempMomentum, double *tempEnergy, int Scheme, int j, int k);
+double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int j, int k);
 
-double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEnergy, int j, int Scheme);
+double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelocity, int j, int Scheme);
 
 /*
  *Prints some useful info to the console
@@ -93,7 +93,7 @@ int main ()
     Sleep(2000);
 
     //call AllEvolutions to run
-    AllEvolutions(solutionDensity, solutionMomentum, solutionEnergy, evolutions, courant, gridSpacing);
+    AllEvolutions(solutionDensity, solutionPressure, solutionVelocity, evolutions, courant, gridSpacing);
    
     for(int i=0; i<=100; ++i)
     {
@@ -157,8 +157,8 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     }
     //memcpy to copy initial conditions onto the solution array
     memcpy(solutionDensity, initialConditions, gridSize * sizeof(double));
-    memcpy(solutionMomentum, initialConditions, gridSize * sizeof(double));
-    memcpy(solutionEnergy, initialConditions, gridSize * sizeof(double));
+    memcpy(solutionPressure, initialConditions, gridSize * sizeof(double));
+    memcpy(solutionVelocity, initialConditions, gridSize * sizeof(double));
     
     fclose(initial_density);
     fclose(initial_momentum);
@@ -180,8 +180,8 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
     {
         //copies the solutions array onto the temp array
         memcpy(tempDensity, solutionDensity, gridSize*sizeof(double));
-        memcpy(tempMomentum, solutionMomentum, gridSize*sizeof(double));
-        memcpy(tempEnergy, solutionEnergy, gridSize*sizeof(double)); 
+        memcpy(tempPressure, solutionMomentum, gridSize*sizeof(double));
+        memcpy(tempVelocity, solutionEnergy, gridSize*sizeof(double)); 
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
@@ -238,7 +238,7 @@ double AllEvolutions(double *solutionDensity, double *solutionMomentum, double *
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEnergy, int j, int Scheme_DME)
+double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelocity, int j, int Scheme_DME)
 {
     double Godunov;
     double densityLeft; double densityRight;
@@ -249,8 +249,8 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
     if (Scheme_DME == 1)
     {
-        densityLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
-        densityRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
+        densityLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
+        densityRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
         adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 
         //densityLeft = adiflux(j-1, j, gridSpacing, timestepSize, j, 0, 0)
@@ -269,12 +269,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
     else if (Scheme_DME == 2)
     {
-        momentumLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
-        momentumRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
+        momentumLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
+        momentumRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
 
-        if (tempMomentum[j] > 0)
+        if (tempPressure[j] > 0)
         {
-            Godunov = tempMomentum[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempMomentum,j,slope_limiter_type));
+            Godunov = tempPressure[j] - courant * (momentumRight - momentumLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempPressure,j,slope_limiter_type));
         }
         else
         {
@@ -288,7 +288,7 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
         printf("value for momentum is = %f\n",Godunov);
         printf("value for momentumLEFT is = %f\n", momentumLeft);
         printf("value for momentumRIGHT is = %f\n", momentumRight);
-        printf("temp value for momentum is = %f\n", tempMomentum);
+        printf("temp value for momentum is = %f\n", tempPressure);
         printf("value for courant is = %f\n", courant);
         Sleep(1000);
         */
@@ -297,12 +297,12 @@ double GodunovScheme(double *tempDensity, double *tempMomentum, double *tempEner
 
     else if (Scheme_DME == 3)
     {
-        energyLeft = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j-1, j);
-        energyRight = RiemannSolver(tempDensity, tempMomentum, tempEnergy, Scheme_DME, j, j+1);
+        energyLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
+        energyRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
 
-        if (tempEnergy[j] > 0)
+        if (tempVelocity[j] > 0)
         {
-            Godunov = tempEnergy[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempEnergy,j,slope_limiter_type));
+            Godunov = tempVelocity[j] - courant * (energyRight - energyLeft) - 0.5 * courant * (gridSpacing - timestepSize)*(chooseSlopeLimiter(tempVelocity,j,slope_limiter_type));
         }
         else
         {
@@ -343,7 +343,7 @@ double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
  *Need to use exact_adiabatic.c to find the solution for Eulers
  */
 //TODO use adiflux() function from exact_adiabatic.c here for Riemann Solver 
-double RiemannSolver(double *tempDensity, double *tempMomentum, double *tempEnergy, int Scheme, int Left, int Right)
+double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int Left, int Right)
 {
     double Riemann;
     double EulerLeft; double EulerRight;
@@ -374,14 +374,14 @@ double RiemannSolver(double *tempDensity, double *tempMomentum, double *tempEner
     }
     else if (Scheme == 2)
     {
-        EulerLeft = EulerEquationMomentum(tempDensity, tempMomentum, tempEnergy, Left);
-        EulerRight = EulerEquationMomentum(tempDensity, tempMomentum, tempEnergy, Right);
+        EulerLeft = EulerEquationMomentum(tempDensity, tempPressure, tempVelocity, Left);
+        EulerRight = EulerEquationMomentum(tempDensity, tempPressure, tempVelocity, Right);
 
-        if (tempMomentum[Left] >= tempMomentum[Right])
+        if (tempPressure[Left] >= tempPressure[Right])
         {
             Riemann = fmax(EulerLeft, EulerRight);
         }
-        else if (tempMomentum[Left] <= 0 && tempMomentum[Right] >= 0)
+        else if (tempPressure[Left] <= 0 && tempPressure[Right] >= 0)
         {
             Riemann = 0;
         }
@@ -395,14 +395,14 @@ double RiemannSolver(double *tempDensity, double *tempMomentum, double *tempEner
     }
     else if (Scheme == 3)
     {
-        EulerLeft = EulerEquationEnergy(tempDensity, tempMomentum, tempEnergy, Left);
-        EulerRight = EulerEquationEnergy(tempDensity, tempMomentum, tempEnergy, Right);
+        EulerLeft = EulerEquationEnergy(tempDensity, tempPressure, tempVelocity, Left);
+        EulerRight = EulerEquationEnergy(tempDensity, tempPressure, tempVelocity, Right);
 
-        if (tempEnergy[Left] >= tempEnergy[Right])
+        if (tempVelocity[Left] >= tempVelocity[Right])
         {
             Riemann = fmax(EulerLeft, EulerRight);
         }
-        else if (tempEnergy[Left] <= 0 && tempEnergy[Right] >= 0)
+        else if (tempVelocity[Left] <= 0 && tempVelocity[Right] >= 0)
         {
             Riemann = 0;
         }
@@ -436,18 +436,18 @@ double EulerEquationDensity(double *tempDensity, int j)
     return solution;
 }
 
-double EulerEquationMomentum(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
+double EulerEquationMomentum(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
 /*
  * (rho *  u^2) + pressure
  * which is q(2)^2 / q(1) + pressure(q)
  */
 {
-    double solution = (pow(tempMomentum[j],2) / tempDensity[j]) + pressure(tempEnergy, tempMomentum, tempDensity, j);
+    double solution = (pow(tempPressure[j],2) / tempDensity[j]) + pressure(tempVelocity, tempPressure, tempDensity, j);
 
     return solution;
 }
 
-double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
+double EulerEquationEnergy(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
 /*
  * (E + pressure) * u
  *
@@ -456,14 +456,14 @@ double EulerEquationEnergy(double *tempDensity, double *tempMomentum, double *te
  * which is q(2) * [q(3) pressure(q)] / q(1)
  */
 {
-    double solution = tempMomentum[j] * (tempEnergy[j] + pressure(tempDensity, tempMomentum, tempEnergy, j)) / tempDensity[j];
+    double solution = tempPressure[j] * (tempVelocity[j] + pressure(tempDensity, tempPressure, tempVelocity, j)) / tempDensity[j];
 
     return solution;
 }
 
-double pressure(double *tempDensity, double *tempMomentum, double *tempEnergy, int j)
+double pressure(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
 {
-    double pressure = tempEnergy[j] * (gamma_val-1) - 0.5 * (pow(tempMomentum[j],2) / tempDensity[j]);
+    double pressure = tempVelocity[j] * (gamma_val-1) - 0.5 * (pow(tempPressure[j],2) / tempDensity[j]);
 
     return pressure;
 }
