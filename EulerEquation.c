@@ -245,14 +245,12 @@ double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelo
     double pressureLeft; double pressureRight;
     double velocityLeft; double velocityRight;
 
-
+    adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 
     if (Scheme_DME == 1)
     {
         densityLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
         densityRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
-
-        adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 
         //densityLeft = adiflux(j-1, j, dx, dt, j, 0, 0)
         
