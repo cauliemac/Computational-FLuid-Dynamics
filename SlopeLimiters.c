@@ -53,10 +53,10 @@ double slopeLimiter_minmod(double *arrayTemp, int j)
     double minmod_a_L;
     double sigma;
     double sigma_L;
-    double gridSpacing = 2/500;
+    double dx = 2/500;
 
-    minmod_a = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
-    minmod_b = (arrayTemp[j+1] - arrayTemp[j])/gridSpacing;
+    minmod_a = (arrayTemp[j] - arrayTemp[j-1])/dx;
+    minmod_b = (arrayTemp[j+1] - arrayTemp[j])/dx;
 
     if(minmod_a * minmod_b < 0)
         sigma = 0;
@@ -65,8 +65,8 @@ double slopeLimiter_minmod(double *arrayTemp, int j)
     else if (abs(minmod_b) < abs(minmod_a) && minmod_a * minmod_b > 0)
         sigma = minmod_b;
 
-    minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/gridSpacing;
-    minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/gridSpacing;
+    minmod_a_L = (arrayTemp[j-1] - arrayTemp[j-2])/dx;
+    minmod_b_L = (arrayTemp[j] - arrayTemp[j-1])/dx;
 
     if(minmod_a_L * minmod_b_L < 0)
         sigma_L = 0;
