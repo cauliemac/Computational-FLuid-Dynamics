@@ -30,16 +30,16 @@ const int slope_limiter_type = 1   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 //testing out structures for holding the data
 typedef struct
 {
-    double solutionPressure[gridSize];
-    double solutionDensity[gridSize];
-    double solutionVelocity[gridSize];
+    double Pressure[gridSize];
+    double Density[gridSize];
+    double Velocity[gridSize];
 }solution_cell_state;
 
 typedef struct
 {
-    double tempPressure[gridSize];
-    double tempDensity[gridSize];
-    double tempVelocity[gridSize];
+    double Pressure[gridSize];
+    double Density[gridSize];
+    double Velocity[gridSize];
 }temp_cell_state;
 */
 
@@ -241,11 +241,17 @@ double AllEvolutions(double *solutionDensity, double *solutionPressure, double *
 double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelocity, int j, int Scheme_DME)
 {
     double Godunov;
-    double densityLeft; double densityRight;
-    double pressureLeft; double pressureRight;
-    double velocityLeft; double velocityRight;
+    double densityLeft,, densityRight;
+    double pressureLeft, pressureRight;
+    double velocityLeft, velocityRight;
+    int Left, Right;
 
-    adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
+    Left = j-1;
+    Right = j;
+    
+    //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
+
+    adiflux(tempDensity, tempPressure, tempVelocity, Left, Right, dx, dt, double *resolved_state)
 
     if (Scheme_DME == 1)
     {
