@@ -33,15 +33,15 @@ struct cell_state
     double Density[gridSize];
     double Pressure[gridSize];
     double Velocity[gridSize];
-};
 
-struct cell_state solution_cell_state, temp_cell_state;
+}solution_cell_state, temp_cell_state;
 
 struct interface_cell_state
 {
     double Density;
     double Pressure;
     double Velocity;
+    
 };
 
 struct interface_cell_state riemann_cell_state;
@@ -265,27 +265,27 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
 
         adiflux(temp_cell_state, Left, Right, dx, dt, riemann_cell_state);
         
-        densityLeft = solution_cell_state.Density[j];
-        densityRight = riemann_cell_state.Density[Right];
+        densityLeft = riemann_cell_state.Density;
+        pressureLeft = riemann_cell_state.Pressure;
+        velocityLeft = riemann_cell_state.Velocity;
+
+        adiflux(temp_cell_state, Left+1, Right+1, dx, dt, riemann_cell_state);
+
+        densityRight = riemann_cell_state.Density;
+        pressureRight = riemann_cell_state.Pressure;
+        velocityRight = riemann_cell_state.Velocity;
     }
     else
     {
         Left = j;
         Right = j+1;
+        printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\n");
+        Sleep(50000);
     }
     
     
     //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
     //TODO fix slope limiters for structures
-    
-
-    
-
-    pressureLeft = riemann_cell_state.Pressure[Left];
-    pressureRight = riemann_cell_state.Pressure[Right];
-
-    velocityLeft = riemann_cell_state.Velocity[Left];
-    velocityRight = riemann_cell_state.Velocity[Right];
 
     solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
