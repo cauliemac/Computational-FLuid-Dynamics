@@ -37,6 +37,15 @@ typedef struct cell_state
 
 cell_state solution_cell_state, temp_cell_state;
 
+typedef struct interface_cell_state
+{
+    double Density;
+    double Pressure;
+    double Velocity;
+}interface_cell_state;
+
+interface_cell_state riemann_cell_state;
+
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
 double solutionPressure[gridSize];
@@ -88,7 +97,7 @@ int main ()
     Sleep(2000);
 
     //call AllEvolutions to run
-    AllEvolutions(solutionDensity, solutionPressure, solutionVelocity, evolutions, courant, dx);
+    AllEvolutions(solution_cell_state, temp_cell_state, evolutions, courant, dx, riemann_cell_state);
    
     for(int i=0; i<=100; ++i)
     {
@@ -169,7 +178,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *closes text file
  */
 //TODO seperate opening files to a different funtion
-double AllEvolutions(double *solution_cell_state, int evolutions, double courant, double dx)
+double AllEvolutions(solution_cell_state, temp_cell_state, int evolutions, double courant, double dx, riemann_cell_state)
 {
     for (int i = 0; i < evolutions; i++)
     {
@@ -180,7 +189,7 @@ double AllEvolutions(double *solution_cell_state, int evolutions, double courant
         memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize*sizeof(double));
         */
        temp_cell_state.Density = solution_cell_state.Density;
-       temp_cell_state.Pressure =solution_cell_state.Pressure;
+       temp_cell_state.Pressure = solution_cell_state.Pressure;
        temp_cell_state.Velocity = solution_cell_state.Velocity;
 
 
@@ -216,14 +225,14 @@ double AllEvolutions(double *solution_cell_state, int evolutions, double courant
             solutionMomentum[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 2);
             solutionEnergy[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 3);
             */
-           solution_cell_state = GodunovScheme(temp_cell_state, j, dx, dt);
+           solution_cell_state = GodunovScheme(temp_cell_state, solution_cell_state, j, dx, dt, riemann_cell_state);
 
             //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
  
             //print the x axis label (which is j) and the solution to a text file
-            fprintf(densityFile, "%i \t %f\n", j, solutionDensity[j]);
-            fprintf(pressureFile, "%i \t %f\n", j, solutionMomentum[j]);
-            fprintf(velocityFile, "%i \t %f\n", j, solutionEnergy[j]);
+            fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
+            fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
+            fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
             
         }
         fclose(densityFile);
@@ -241,22 +250,47 @@ double AllEvolutions(double *solution_cell_state, int evolutions, double courant
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-double GodunovScheme(solution_cell_state, int j, double dx, double dt)
+double GodunovScheme(temp_cell_state, solution_cell_state, int j, double dx, double dt, riemann_cell_state)
 {
     double Godunov;
-    double densityLeft = solution_cell_state.Density[j-1];
-    double densityRight = solution_cell_state.Density[j];;
+    double densityLeft, densityRight;
     double pressureLeft, pressureRight;
     double velocityLeft, velocityRight;
     int Left, Right;
 
-    //Left = j-1;
-    //Right = j;
+    if (solution_cell_state.Velocity[j] > 0)
+    {
+        Left = j-1;
+        Right = j;
+    }
+    else
+    {
+        Left = j;
+        Right = j+1;
+    }
+    
     
     //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
+    //TODO fix slope limiters for structures
+    adiflux(solution_cell_state, temp_cell_state, Left, Right, dx, dt, riemann_cell_state);
 
-    //adiflux(tempDensity, tempPressure, tempVelocity, Left, Right, dx, dt, double *resolved_state)
+    densityLeft = riemann_cell_state.Density[Left];
+    densityRight = riemann_cell_state.Density[Right];
 
+    pressureLeft = riemann_cell_state.Pressure[Left];
+    pressureRight riemann_cell_state.Pressure[Right];
+
+    velocityLeft = riemann_cell_state.Velocity[Left];
+    velocityRight = riemann_cell_state.Velocity[Right];
+
+    solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+    solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
+    solution_cell_state.Velocity[j] = temp_cell_state.velocity[j] - courant * (velocityRight - velocityLeft);
+
+    return solution_cell_state;
+
+
+/*
     if (Scheme_DME == 1)
     {
         densityLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
@@ -291,16 +325,17 @@ double GodunovScheme(solution_cell_state, int j, double dx, double dt)
             printf("Error in Riemann Momentum calculations at j=%i\n",j);
         }
         
-        /*
-        printf("here\n");
-        printf("value for arrayTemp at %i is = %f\n",j,arrayTemp[j]);
-        printf("value for momentum is = %f\n",Godunov);
-        printf("value for momentumLEFT is = %f\n", pressureLeft);
-        printf("value for momentumRIGHT is = %f\n", pressureRight);
-        printf("temp value for momentum is = %f\n", tempPressure);
-        printf("value for courant is = %f\n", courant);
-        Sleep(1000);
-        */
+        
+        //printf("here\n");
+        //printf("value for arrayTemp at %i is = %f\n",j,arrayTemp[j]);
+        //printf("value for momentum is = %f\n",Godunov);
+        //printf("value for momentumLEFT is = %f\n", pressureLeft);
+        //printf("value for momentumRIGHT is = %f\n", pressureRight);
+        //printf("temp value for momentum is = %f\n", tempPressure);
+        //printf("value for courant is = %f\n", courant);
+        //Sleep(1000);
+        
+    
         
     }
 
@@ -321,8 +356,8 @@ double GodunovScheme(solution_cell_state, int j, double dx, double dt)
         }
         //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
         //Sleep(500);
-    }
-    
+    } 
+*/
     return Godunov;
 }
 
