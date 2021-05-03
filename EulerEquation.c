@@ -24,24 +24,18 @@ double courant = dt/dx; //Courant number for printout
  *should be (wave speed * timestep)/ dx
  */
 float gamma_val = 5/3;
-const int slope_limiter_type = 1   //1 for MC, 2 for Minmod, 3 for Van Albada 1
+const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 
-/*
+
 //testing out structures for holding the data
-typedef struct
+typedef struct cell_state
 {
-    double Pressure[gridSize];
     double Density[gridSize];
+    double Pressure[gridSize];
     double Velocity[gridSize];
-}solution_cell_state;
+}cell_state;
 
-typedef struct
-{
-    double Pressure[gridSize];
-    double Density[gridSize];
-    double Velocity[gridSize];
-}temp_cell_state;
-*/
+cell_state solution_cell_state, temp_cell_state;
 
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
@@ -72,7 +66,8 @@ double pressure(double *tempDensity, double *tempPressure, double *tempVelocity,
 
 double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int j, int k);
 
-double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelocity, int j, int Scheme);
+//double GodunovScheme(double *temp_cell_state, int j, int Scheme);
+double GodunovScheme(double *temp_cell_state, int j, double dx, double dt);
 
 /*
  *Prints some useful info to the console
@@ -156,9 +151,9 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
         }
     }
     //memcpy to copy initial conditions onto the solution array
-    memcpy(solutionDensity, initialConditions, gridSize * sizeof(double));
-    memcpy(solutionPressure, initialConditions, gridSize * sizeof(double));
-    memcpy(solutionVelocity, initialConditions, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Velocity, initialConditions, gridSize * sizeof(double));
     
     fclose(initial_density);
     fclose(initial_pressure);
@@ -174,14 +169,20 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *closes text file
  */
 //TODO seperate opening files to a different funtion
-double AllEvolutions(double *solutionDensity, double *solutionPressure, double *solutionVelocity, int evolutions, double courant, double dx)
+double AllEvolutions(double *solution_cell_state, int evolutions, double courant, double dx)
 {
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
-        memcpy(tempDensity, solutionDensity, gridSize*sizeof(double));
-        memcpy(tempPressure, solutionPressure, gridSize*sizeof(double));
-        memcpy(tempVelocity, solutionVelocity, gridSize*sizeof(double)); 
+        /*
+        memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize*sizeof(double));
+        memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize*sizeof(double));
+        memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize*sizeof(double));
+        */
+       temp_cell_state.Density = solution_cell_state.Density;
+       temp_cell_state.Pressure =solution_cell_state.Pressure;
+       temp_cell_state.Velocity = solution_cell_state.Velocity;
+
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
@@ -210,10 +211,12 @@ double AllEvolutions(double *solutionDensity, double *solutionPressure, double *
              *Calls the Godunov Scheme for Density, Pressure, and Velocity
              *if Scheme == 1 then it uses the varialbes for density
              *if Scheme == 2 then it uses pressure and so on
-             */
+             
             solutionDensity[j] = GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 1);
             solutionMomentum[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 2);
-            solutionEnergy[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 3;
+            solutionEnergy[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 3);
+            */
+           solution_cell_state = GodunovScheme(temp_cell_state, j, dx, dt);
 
             //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
  
@@ -238,20 +241,21 @@ double AllEvolutions(double *solutionDensity, double *solutionPressure, double *
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-double GodunovScheme(double *tempDensity, double *tempPressure, double *tempVelocity, int j, int Scheme_DME)
+double GodunovScheme(solution_cell_state, int j, double dx, double dt)
 {
     double Godunov;
-    double densityLeft,, densityRight;
+    double densityLeft = solution_cell_state.Density[j-1];
+    double densityRight = solution_cell_state.Density[j];;
     double pressureLeft, pressureRight;
     double velocityLeft, velocityRight;
     int Left, Right;
 
-    Left = j-1;
-    Right = j;
+    //Left = j-1;
+    //Right = j;
     
     //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
 
-    adiflux(tempDensity, tempPressure, tempVelocity, Left, Right, dx, dt, double *resolved_state)
+    //adiflux(tempDensity, tempPressure, tempVelocity, Left, Right, dx, dt, double *resolved_state)
 
     if (Scheme_DME == 1)
     {
