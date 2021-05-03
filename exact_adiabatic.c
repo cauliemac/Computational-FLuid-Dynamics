@@ -30,12 +30,12 @@
  * @param[in] gl Pointer to array of functions of \gamma in left state
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
-void func_newt(double x,double *f, double *df, double t1, double t2, double t3, double *gl, double *gr)
+void func_newt(double x,double *f, double *df, double t1, double t2, double t3, double gl, double gr)
 {
 
-	*f=t1*pow(x,gl[4])+t2*pow(x,gr[4])-t3;
+	*f=t1*pow(x,gl)+t2*pow(x,gr)-t3;
 
-	*df=gl[4]*t1*pow(x,-gl[3])+gr[4]*t2*pow(x,-gr[3]);	
+	*df=gl*t1*pow(x,-gl)+gr*t2*pow(x,-gr);
 
 }
 
@@ -97,12 +97,12 @@ double newt(double x, double xmin, double xmax, double t1, double t2, double t3,
  * @param[in] gr Pointer to array of functions of \gamma in right state
  */
 
-double func_bis(double x, double t1, double t2, double t3, double *gl, double *gr)
+double func_bis(double x, double t1, double t2, double t3, double gl, double gr)
 {
 
 	double f;
 
-	f=t1*pow(x,gl[4])+t2*pow(x,gr[4])-t3;
+	f=t1*pow(x,gl)+t2*pow(x,gr)-t3;
 
 	return(f);
 
@@ -121,7 +121,7 @@ double func_bis(double x, double t1, double t2, double t3, double *gl, double *g
  */
 
 
-double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, double *gl, double *gr)
+double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, double gl, double gr)
 {
 
 	int j;
@@ -159,7 +159,7 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
  */
 
 //void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
-void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double dx, double dt, riemann_cell_state)
+double adiflux(struct /*cell_state*/ temp_cell_state, int Left, int Right, double dx, double dt, struct /*interface_cell_state*/ riemann_cell_state)
 {
   
 	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
@@ -173,13 +173,13 @@ void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double d
 
 /* First get our primitive variables */
 
-	rhol=solution_cell_state.Density[Left];//rho left (density ρ)
-	ul  =solution_cell_state.Velocity[Left]/rhol;//speed left
-	pl = solution_cell_state.Pressure[Left];// pressure left
+	rhol=temp_cell_state.Density[Left];//rho left (density ρ)
+	ul  =temp_cell_state.Velocity[Left]/rhol;//speed left
+	pl = temp_cell_state.Pressure[Left];// pressure left
 
-	rhor=solution_cell_state.Density[Right];//rho right (density ρ)
-	ur  =solution_cell_state.Velocity[Right]/rhor;//speed right
-	pr = solution_cell_state.Pressure[Right];// pressure right
+	rhor=temp_cell_state.Density[Right];//rho right (density ρ)
+	ur  =temp_cell_state.Velocity[Right]/rhor;//speed right
+	pr = temp_cell_state.Pressure[Right];// pressure right
 
   /***************************************************************************
    *                                                                         *
@@ -277,8 +277,8 @@ void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double d
        *        Initialise iteration
        */
       pi = p;
-		wleft = -cl*wave(p,pl,gl);
-		wright = cr*wave(p,pr,gr);
+		wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
+		wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
       iter = 0;
       p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 		if(p<0.0) 
@@ -292,8 +292,8 @@ void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double d
       while(fabs((p-pi)/p) > 0.1 && iter < 20)
 	  {
    		pi = p;
-			wleft = -cl*wave(p,pl,gl);
-			wright = cr*wave(p,pr,gr);
+			wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
+			wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
       	p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 			if(p<0.0) 
 				p=1.0e-10; /* if <0 treat it as zero */
@@ -320,8 +320,8 @@ void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double d
      }
   */
 
-  wleft = -cl*wave(p,pl,gl);
-  wright = cr*wave(p,pr,gr);
+  wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
+  wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
   u = (wright*ur - wleft*ul - pr + pl)/(wright -wleft);
   
   /*
@@ -485,9 +485,11 @@ void adiflux(solution_cell_state, temp_cell_state, int Left, int Right, double d
    */
 
 	
-	resolved_state = [density,u,p,c_v];
+	//resolved_state = [density,u,p,c_v];
 
 	riemann_cell_state = {density,p,u};
+
+	return riemann_cell_state;
 
 	/*
 	(*resolved_state).c[0] = density;
