@@ -22,7 +22,7 @@ int main()
 
     for(int i=1; i<gridSize+1;i++)
     {
-        temp.Density[i] = 10100;
+        temp.Density[i] = i;
         temp.Pressure[i] = i;
         temp.Velocity[i] = i;
 
