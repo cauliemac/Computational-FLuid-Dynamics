@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <Windows.h>
-#include "functions.h"
+//#include "functions.h"
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
@@ -49,6 +49,7 @@ struct interface_cell_state
 
 struct interface_cell_state *riemann_cell_state_PTR = &riemann_cell_state;
 
+/*
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
 double solutionDensity[gridSize];
 double solutionPressure[gridSize];
@@ -58,6 +59,7 @@ double solutionVelocity[gridSize];
 double tempDensity[gridSize];
 double tempPressure[gridSize];
 double tempVelocity[gridSize];
+*/
 
 //creates three initial conditions arrays for Mass, Momentum, and Energy
 double initialDensity[gridSize];
@@ -81,8 +83,8 @@ double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelo
 
 void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution_cell_state, int j, double dx, double dt, struct interface_cell_state riemann_cell_state);
 
-
-
+//Calculates the resolved state given the left and right states.
+double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state);
 
 /*
  *Prints some useful info to the console
@@ -271,13 +273,13 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
         Left = j-1;
         Right = j;
 
-        adiflux(temp_cell_state_PTR, Left, Right, dx, dt, riemann_cell_state_PTR);
+        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
         
         densityLeft = riemann_cell_state.Density;
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
-        adiflux(temp_cell_state_PTR, Left+1, Right+1, dx, dt, riemann_cell_state_PTR);
+        adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
@@ -288,6 +290,7 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
         Left = j;
         Right = j+1;
         printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\n");
+        //TODO THIS NEEDS TO BE FIXED
         Sleep(50000);
     }
     

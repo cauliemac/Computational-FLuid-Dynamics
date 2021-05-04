@@ -1,72 +1,65 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
+#include <Windows.h>
 
-#define gridSize 50 //size of grid
-double gridSpacing = 2.0 / (gridSize);   //grid spacing ( also h)
-double initialConditions[gridSize];
+#define gridSize 50
 
-
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine); 
-
-//gives an initial conditions array with a square or sine wave
-double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
+typedef struct CELL_STATE
 {
-    if (sine == 1)
-        for (int i=0; i<gridSize; i++)
-        {
-            initialConditions[i] = sin(2*i/(gridSize/M_PI));
-        }
+    double Density[gridSize];
+    double Pressure[gridSize];
+    double Velocity[gridSize];
+}cell_state;
 
-    else
-        //populates the area between a and b as percentages of the grid with height 2
-       for (int i=0; i<gridSize; i++)
-        {                
-            if (i/gridSize > a/100 && i/gridSize < b/100)   
-                initialConditions[i] = 2;
-            else
-                initialConditions[i] = 1;
-        }
+void set(cell_state a);//declare
 
-    return *initialConditions;
-}
+void add(cell_state a, cell_state b, cell_state *result);//declare
 
 int main()
 {
-    double a = getInitialConditions(initialConditions, gridSize, 10, 60, 0);
-    for(int i = 0; i< gridSize;i++)
+    cell_state temp, solution, result;
+
+    for(int i=1; i<gridSize+1;i++)
     {
-        printf("%f\n",initialConditions[i]);
+        temp.Density[i] = i;
+        temp.Pressure[i] = i;
+        temp.Velocity[i] = i;
+
+        printf("set temp.Density[%i] = %d\n", i, temp.Density[i]);
+        Sleep(20);
     }
-    
+
+    //set(temp);
+    //set(solution);
+
+    add(temp, solution, &result);
+
+    system("pause");
+
     return 0;
 }
 
 /*
-populates the grid between a and b (as a percent) with the height 2.
-Or returns a sine wave if sine = 1
-*/
-
-/*
-#define gridsize 50
-int plus = 5;
-double initialConditions[gridsize];
-
-static double add(double *initialConditions, int b);
-
-double add(double *initialConditions ,int b)
+void set(cell_state a)
 {
-    for(int i = 0; i < gridsize; i++)
-        initialConditions[i] = i+b;
-    
-        return *initialConditions;
-}
+    for(int i=0; i<=gridSize;i++)
+    {
+        a.Density[i] = i;
+        a.Pressure[i] = i;
+        a.Velocity[i] = i;
 
-int main()
-{
-    double a = add(initialConditions, plus);
-    for(int i = 0; i < gridsize; i++)
-        printf("%f\n", initialConditions[i]);
+        printf("set a.Density[%i] = %d\n", i, &a.Density[i]);
+        Sleep(20);
+    }
+    //printf("%d\n", a.Density[gridSize]);
+    Sleep(2000);
 }
 */
+
+void add(cell_state a, cell_state b, cell_state *result)
+{
+    result->Density[gridSize] = a.Density[gridSize] + b.Density[gridSize];
+    printf("result->Density[%i] = %d\n", gridSize, result->Density[gridSize]);
+    Sleep(2000);
+}
