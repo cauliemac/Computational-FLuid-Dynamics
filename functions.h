@@ -33,4 +33,4 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
 void gamma_calc(double gamma, double *g);
 
 //Calculates the resolved state given the left and right states.
-void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state);
+//void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state);

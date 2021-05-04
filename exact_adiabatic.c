@@ -159,7 +159,7 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
  */
 
 //void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
-void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state)
+double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state)
 {
   
 	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
@@ -173,13 +173,14 @@ void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, 
 
 /* First get our primitive variables */
 
-	rhol=&(*temp_cell_state).Density[Left];//rho left (density ρ)
-	ul  =temp_cell_state.Velocity[Left]/rhol;//speed left
-	pl = &temp_cell_state.Pressure[Left];// pressure left
+	//rhol= (*temp_cell_state).Density[Left];//rho left (density ρ)
+	rhol= temp_cell_state.Density[Left];//rho left (density ρ)
+	ul  = temp_cell_state.Velocity[Left]/rhol;//speed left
+	pl =  temp_cell_state.Pressure[Left];// pressure left
 
-	rhor=&temp_cell_state.Density[Right];//rho right (density ρ)
-	ur  =&temp_cell_state.Velocity[Right]/rhor;//speed right
-	pr = &temp_cell_state.Pressure[Right];// pressure right
+	rhor= temp_cell_state.Density[Right];//rho right (density ρ)
+	ur  = temp_cell_state.Velocity[Right]/rhor;//speed right
+	pr =  temp_cell_state.Pressure[Right];// pressure right
 
   /***************************************************************************
    *                                                                         *
@@ -491,7 +492,7 @@ void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, 
 	riemann_cell_state.Pressure = p;
 	riemann_cell_state.Velocity = u;
 
-	//return riemann_cell_state;
+	return riemann_cell_state;
 
 	/*
 	(*resolved_state).c[0] = density;

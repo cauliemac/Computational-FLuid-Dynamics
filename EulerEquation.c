@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <Windows.h>
-#include "functions.h"
+//#include "functions.h"
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
@@ -41,7 +41,7 @@ struct interface_cell_state
     double Density;
     double Pressure;
     double Velocity;
-    
+
 };
 
 struct interface_cell_state riemann_cell_state;
@@ -78,6 +78,10 @@ double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelo
 
 void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution_cell_state, int j, double dx, double dt, struct interface_cell_state riemann_cell_state);
 
+//Calculates the resolved state given the left and right states.
+double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state);
+
+
 /*
  *Prints some useful info to the console
  *Gets the initial conditions
@@ -92,7 +96,7 @@ int main ()
     printf("Courant number: %f\n", courant);
     
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 0, 50, 0);
+    getInitialConditions(initialConditions, gridSize, 0, 30, 0);
 
     Sleep(2000);
 
@@ -178,19 +182,21 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *closes text file
  */
 //TODO seperate opening files to a different funtion
-double AllEvolutions(struct cell_state solution_cell_state, struct cell_state temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state){
+double AllEvolutions(struct cell_state solution_cell_state, struct cell_state& temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state){
 
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
         
-        memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize*sizeof(double));
-        memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize*sizeof(double));
-        memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize*sizeof(double));
+        //memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize*sizeof(double));
+        //memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize*sizeof(double));
+        //memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize*sizeof(double));
         
        //temp_cell_state.Density[] = solution_cell_state.Density[];
        //temp_cell_state.Pressure[] = solution_cell_state.Pressure[];
        //temp_cell_state.Velocity[] = solution_cell_state.Velocity[];
+
+       temp_cell_state = solution_cell_state;
 
 
         /*
@@ -366,6 +372,7 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
 }
 
 //picks a slope limiter from a list in SlopeLimiters.c
+/*
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
 {
     double sigma;
@@ -383,6 +390,8 @@ double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
     }
     return sigma;
 }
+*/
+
 
 /*
  *Returns the exact solution to the Riemann problem between two piecewise states
