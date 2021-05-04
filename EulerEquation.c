@@ -84,7 +84,7 @@ double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelo
 void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution_cell_state, int j, double dx, double dt, struct interface_cell_state riemann_cell_state);
 
 //Calculates the resolved state given the left and right states.
-double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state);
+//double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state);
 
 /*
  *Prints some useful info to the console
@@ -110,6 +110,7 @@ int main ()
     for(int i=0; i<=100; ++i)
     {
         printf("\r[%3d%%]",i);
+        Sleep(100);
     } 
     printf("\n");
     system("pause");
@@ -186,7 +187,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *closes text file
  */
 //TODO seperate opening files to a different funtion
-double AllEvolutions(struct cell_state solution_cell_state, struct cell_state& temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state){
+double AllEvolutions(struct cell_state solution_cell_state, struct cell_state temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state){
 
     for (int i = 0; i < evolutions; i++)
     {
@@ -273,13 +274,13 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
         Left = j-1;
         Right = j;
 
-        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
+        //adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
         
         densityLeft = riemann_cell_state.Density;
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
-        adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
+        //adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;

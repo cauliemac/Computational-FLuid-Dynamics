@@ -22,11 +22,13 @@ int main()
 
     for(int i=1; i<gridSize+1;i++)
     {
-        temp.Density[i] = i;
+        temp.Density[i] = 10100;
         temp.Pressure[i] = i;
         temp.Velocity[i] = i;
 
-        printf("set temp.Density[%i] = %d\n", i, temp.Density[i]);
+        double val;
+        val = temp.Density[i];
+        printf("set temp.Density[%i] = %d\n", i, val);
         Sleep(20);
     }
 
