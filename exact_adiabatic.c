@@ -159,7 +159,7 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
  */
 
 //void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
-double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state)
+double adiflux(struct cell_state* temp_cell_state_PTR, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state_PTR)
 {
   
 	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
@@ -174,13 +174,13 @@ double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx
 /* First get our primitive variables */
 
 	//rhol= (*temp_cell_state).Density[Left];//rho left (density ρ)
-	rhol= temp_cell_state.Density[Left];//rho left (density ρ)
-	ul  = temp_cell_state.Velocity[Left]/rhol;//speed left
-	pl =  temp_cell_state.Pressure[Left];// pressure left
+	rhol= (*temp_cell_state_PTR).Density[Left];//rho left (density ρ)
+	ul  = temp_cell_state_PTR->Velocity[Left]/rhol;//speed left
+	pl =  temp_cell_state_PTR->Pressure[Left];// pressure left
 
-	rhor= temp_cell_state.Density[Right];//rho right (density ρ)
-	ur  = temp_cell_state.Velocity[Right]/rhor;//speed right
-	pr =  temp_cell_state.Pressure[Right];// pressure right
+	rhor= temp_cell_state_PTR->Density[Right];//rho right (density ρ)
+	ur  = temp_cell_state_PTR->Velocity[Right]/rhor;//speed right
+	pr =  temp_cell_state_PTR->Pressure[Right];// pressure right
 
   /***************************************************************************
    *                                                                         *
@@ -488,11 +488,11 @@ double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx
 	
 	//resolved_state = [density,u,p,c_v];
 
-	riemann_cell_state.Density = density; //{density,p,u};
-	riemann_cell_state.Pressure = p;
-	riemann_cell_state.Velocity = u;
+	riemann_cell_state_PTR.Density = density; //{density,p,u};
+	(*riemann_cell_state_PTR).Pressure = p;
+	(*riemann_cell_state_PTR).Velocity = u;
 
-	return riemann_cell_state;
+	return riemann_cell_state_PTR;
 
 	/*
 	(*resolved_state).c[0] = density;
