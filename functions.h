@@ -35,5 +35,25 @@ void gamma_calc(double gamma, double *g);
 //Calculates the resolved state given the left and right states.
 //void adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state riemann_cell_state);
 
+//testing out structures for holding the data#
+#define gridSize 100
+typedef struct CCELL_STATE
+{
+    double Density[gridSize];
+    double Pressure[gridSize];
+    double Velocity[gridSize];
+
+}cell_state;
+
+// solution_cell_state, temp_cell_state;
+
+typedef struct INTERFACE_CELL_STATE
+{
+    double Density;
+    double Pressure;
+    double Velocity;
+
+}interface_cell_state;
+
 //Calculates the resolved state given the left and right states.
-//double adiflux(struct cell_state temp_cell_state_PTR, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state_PTR);
+void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state* riemann_cell_state);

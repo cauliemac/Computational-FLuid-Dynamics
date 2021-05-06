@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <Windows.h>
-//#include "functions.h"
+#include "functions.h"
 
 /**************************************************************
  *  1D implimentation of Euler's Equations of Gas Dynamics    *
@@ -14,7 +14,7 @@
  **************************************************************/
 
 // declare starting variables
-#define gridSize 100 //size of grid
+//#define gridSize 100 //size of grid
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
 const float dt = 0.005;  //size of each timestep ( also k)
@@ -26,28 +26,8 @@ double courant = dt/dx; //Courant number for printout
 float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 
-
-//testing out structures for holding the data
-struct cell_state
-{
-    double Density[gridSize];
-    double Pressure[gridSize];
-    double Velocity[gridSize];
-
-}solution_cell_state, temp_cell_state;
-
-struct cell_state *solution_cell_state_PTR = &solution_cell_state;
-struct cell_state *temp_cell_state_PTR = &temp_cell_state;
-
-struct interface_cell_state
-{
-    double Density;
-    double Pressure;
-    double Velocity;
-
-}riemann_cell_state;
-
-struct interface_cell_state *riemann_cell_state_PTR = &riemann_cell_state;
+cell_state temp_cell_state, solution_cell_state;
+interface_cell_state riemann_cell_state; 
 
 /*
 //creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
@@ -70,7 +50,7 @@ double initialVelocity[gridSize];
 double initialConditions[gridSize];
 static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine);
 
-double AllEvolutions(struct cell_state solution_cell_state, struct cell_state temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state);
+double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state);
 
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
 
@@ -81,10 +61,11 @@ double pressure(double *tempDensity, double *tempPressure, double *tempVelocity,
 
 double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int j, int k);
 
-void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution_cell_state, int j, double dx, double dt, struct interface_cell_state riemann_cell_state);
+void GodunovScheme(cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state);
 
 //Calculates the resolved state given the left and right states.
-//double adiflux(struct cell_state temp_cell_state, int Left, int Right, double dx, double dt, struct interface_cell_state* riemann_cell_state);
+//void adiflux cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state riemann_cell_state);
+//TODO redo this as a void 
 
 /*
  *Prints some useful info to the console
@@ -98,6 +79,8 @@ int main ()
     printf("time step size: %f\n", dt);
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
+
+
     
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 0, 30, 0);
@@ -187,7 +170,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
  *closes text file
  */
 //TODO seperate opening files to a different funtion
-double AllEvolutions(struct cell_state solution_cell_state, struct cell_state temp_cell_state, int evolutions, double courant, double dx, struct interface_cell_state riemann_cell_state){
+double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state){
 
     for (int i = 0; i < evolutions; i++)
     {
@@ -261,7 +244,7 @@ double AllEvolutions(struct cell_state solution_cell_state, struct cell_state te
  *if Scheme == 2 then it uses the variables for momentum
  *if Scheme == 3 the it uses the variables for Energy
  */
-void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution_cell_state, int j, double dx, double dt, struct interface_cell_state riemann_cell_state){
+void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state){
 
     double Godunov;
     double densityLeft, densityRight;
@@ -274,13 +257,13 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
         Left = j-1;
         Right = j;
 
-        //adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
+        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
         
         densityLeft = riemann_cell_state.Density;
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
-        //adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
+        adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
@@ -297,7 +280,7 @@ void GodunovScheme(struct cell_state temp_cell_state, struct cell_state solution
     
     
     //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
-    //TODO fix slope limiters for structures
+    //TODO fix slope limiters for res
 
     solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
