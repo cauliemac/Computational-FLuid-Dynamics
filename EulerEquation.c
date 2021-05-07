@@ -29,18 +29,6 @@ const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 cell_state temp_cell_state, solution_cell_state;
 interface_cell_state riemann_cell_state; 
 
-/*
-//creates 3 solution arrays to hold the grid values for Mass, Momentum, and Energy
-double solutionDensity[gridSize];
-double solutionPressure[gridSize];
-double solutionVelocity[gridSize];
-
-//creates three temp holding arrays for Mass, Momentum, and Energy
-double tempDensity[gridSize];
-double tempPressure[gridSize];
-double tempVelocity[gridSize];
-*/
-
 //creates three initial conditions arrays for Mass, Momentum, and Energy
 double initialDensity[gridSize];
 double initialPressure[gridSize];
@@ -48,20 +36,6 @@ double initialVelocity[gridSize];
 
 //declaring the functions
 double initialConditions[gridSize];
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine);
-
-double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state);
-
-double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
-
-double EulerEquationDensity(double *tempDensity, int j);
-double EulerEquationMomentum(double *tempDensity, double *tempPressure, double *tempvelocity, int j);
-double EulerEquationEnergy(double *tempDensity, double *tempPressure, double *tempVelocity, int j);
-double pressure(double *tempDensity, double *tempPressure, double *tempVelocity, int j);
-
-double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int j, int k);
-
-void GodunovScheme(cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state);
 
 //Calculates the resolved state given the left and right states.
 //void adiflux cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state riemann_cell_state);
@@ -80,8 +54,6 @@ int main ()
     printf("evolutions: %f\n", evolutions);
     printf("Courant number: %f\n", courant);
 
-
-    
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 0, 30, 0);
 
@@ -175,17 +147,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
-        
-        //memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize*sizeof(double));
-        //memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize*sizeof(double));
-        //memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize*sizeof(double));
-        
-       //temp_cell_state.Density[] = solution_cell_state.Density[];
-       //temp_cell_state.Pressure[] = solution_cell_state.Pressure[];
-       //temp_cell_state.Velocity[] = solution_cell_state.Velocity[];
-
        temp_cell_state = solution_cell_state;
-
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
@@ -210,15 +172,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         //calculates the next value of the current cell
         for (int j = 1; j < gridSize-1; j++)
         {
-            /*
-             *Calls the Godunov Scheme for Density, Pressure, and Velocity
-             *if Scheme == 1 then it uses the varialbes for density
-             *if Scheme == 2 then it uses pressure and so on
-             
-            solutionDensity[j] = GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 1);
-            solutionMomentum[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 2);
-            solutionEnergy[j] =  GodunovScheme(solutionDensity, solutionPressure, solutionVelocity, j, 3);
-            */
+           
             GodunovScheme(temp_cell_state, solution_cell_state, j, dx, dt, riemann_cell_state);
 
             //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
@@ -227,7 +181,6 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
             fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
-            
         }
         fclose(densityFile);
         fclose(pressureFile);
@@ -240,9 +193,6 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
  *Uses the Godunov scheme in combination with the flux in and out of a gridpoint
  *to calculate the next value of a gridpoint
 
- *if Scheme == 1 then it uses the varialbes for density
- *if Scheme == 2 then it uses the variables for momentum
- *if Scheme == 3 the it uses the variables for Energy
  */
 void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state){
 
@@ -257,6 +207,12 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
         Left = j-1;
         Right = j;
 
+        /*
+        *Returns the exact solution to the Riemann problem between 
+        *two piecewise states for the Euler Equations.
+        *chooses between the equations for pressure, density, and velocity
+        *Need to use exact_adiabatic.c to find the solution for Eulers
+        */
         adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
         
         densityLeft = riemann_cell_state.Density;
@@ -273,94 +229,23 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     {
         Left = j;
         Right = j+1;
-        printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\n");
+        printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\nEXITING");
         //TODO THIS NEEDS TO BE FIXED
-        Sleep(50000);
+        system("pause");
     }
-    
-    
-    //adiflux(double *tempDensity, double *tempPressure, double *tempVelocity, int Left, int Right, double dx, double dt, double *resolved_state)
+ 
     //TODO fix slope limiters for res
 
+    //return solution_cell_state;
     solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
     solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
 
-    //return solution_cell_state;
-
-
-/*
-    if (Scheme_DME == 1)
-    {
-        densityLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
-        densityRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
-
-        //densityLeft = adiflux(j-1, j, dx, dt, j, 0, 0)
-        
-        if (tempDensity[j] > 0)
-        {
-            Godunov = tempDensity[j] - courant * (densityRight - densityLeft) - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(tempDensity,j,slope_limiter_type));
-        }
-        else
-        {
-            Godunov = 1.0e-06;
-            printf("Error in Riemann Density calculations at j=%i\n",j);
-        }
-        
-    }
-
-    else if (Scheme_DME == 2)
-    {
-        pressureLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
-        pressureRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
-
-        if (tempPressure[j] > 0)
-        {
-            Godunov = tempPressure[j] - courant * (pressureRight - pressureLeft) - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(tempPressure,j,slope_limiter_type));
-        }
-        else
-        {
-            Godunov = 1.0e-06;
-            printf("Error in Riemann Momentum calculations at j=%i\n",j);
-        }
-        
-        
-        //printf("here\n");
-        //printf("value for arrayTemp at %i is = %f\n",j,arrayTemp[j]);
-        //printf("value for momentum is = %f\n",Godunov);
-        //printf("value for momentumLEFT is = %f\n", pressureLeft);
-        //printf("value for momentumRIGHT is = %f\n", pressureRight);
-        //printf("temp value for momentum is = %f\n", tempPressure);
-        //printf("value for courant is = %f\n", courant);
-        //Sleep(1000);
-        
     
-        
-    }
-
-    else if (Scheme_DME == 3)
-    {
-        velocityLeft = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j-1, j);
-        velocityRight = RiemannSolver(tempDensity, tempPressure, tempVelocity, Scheme_DME, j, j+1);
-
-        if (tempVelocity[j] > 0)
-        {
-            Godunov = tempVelocity[j] - courant * (velocityRight - velocityLeft) - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(tempVelocity,j,slope_limiter_type));
-        }
-        else
-        {
-            Godunov = 1.0e-06;
-            printf("Error in Riemann Energy calculations at j=%i\n",j);
-            //negative energy is not a physical solution (this case still happens cos of my shit code tho)
-        }
-        //printf("Godunov at Energy at %i is = %f\n",j,Godunov);
-        //Sleep(500);
-    } 
-*/
-    //return Godunov;
 }
 
 //picks a slope limiter from a list in SlopeLimiters.c
+//TODO impliment slopelimiter picker
 /*
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
 {
@@ -380,136 +265,3 @@ double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
     return sigma;
 }
 */
-
-
-/*
- *Returns the exact solution to the Riemann problem between two piecewise states
- *for the Euler Equations
- *chooses between the equations for Denstiy, Momentum, Energy
- *Need to use exact_adiabatic.c to find the solution for Eulers
- */
-//TODO use adiflux() function from exact_adiabatic.c here for Riemann Solver 
-double RiemannSolver(double *tempDensity, double *tempPressure, double *tempVelocity, int Scheme, int Left, int Right)
-{
-    double Riemann;
-    double EulerLeft; double EulerRight;
-
-    /*
-     *Changes the variables for the left and right state depending on 
-     *whether it's for density, momentum, or energy
-     */
-    if (Scheme == 1)
-    {
-        EulerLeft = EulerEquationDensity(tempDensity, Left);
-        EulerRight = EulerEquationDensity(tempDensity, Right);
-
-        if (tempDensity[Left] >= tempDensity[Right])
-        {
-            Riemann = fmax(EulerLeft, EulerRight);
-        }
-        else if (tempDensity[Left] <= 0 && tempDensity[Right] >= 0)
-        {
-            Riemann = 0;
-        }
-        else
-        {
-            Riemann = fmin(EulerLeft, EulerRight);
-        }
-
-        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
-    }
-    else if (Scheme == 2)
-    {
-        EulerLeft = EulerEquationMomentum(tempDensity, tempPressure, tempVelocity, Left);
-        EulerRight = EulerEquationMomentum(tempDensity, tempPressure, tempVelocity, Right);
-
-        if (tempPressure[Left] >= tempPressure[Right])
-        {
-            Riemann = fmax(EulerLeft, EulerRight);
-        }
-        else if (tempPressure[Left] <= 0 && tempPressure[Right] >= 0)
-        {
-            Riemann = 0;
-        }
-        else
-        {
-            Riemann = fmin(EulerLeft, EulerRight);
-        }
-        
-
-        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
-    }
-    else if (Scheme == 3)
-    {
-        EulerLeft = EulerEquationEnergy(tempDensity, tempPressure, tempVelocity, Left);
-        EulerRight = EulerEquationEnergy(tempDensity, tempPressure, tempVelocity, Right);
-
-        if (tempVelocity[Left] >= tempVelocity[Right])
-        {
-            Riemann = fmax(EulerLeft, EulerRight);
-        }
-        else if (tempVelocity[Left] <= 0 && tempVelocity[Right] >= 0)
-        {
-            Riemann = 0;
-        }
-        else
-        {
-            Riemann = fmin(EulerLeft, EulerRight);
-        }
-
-        //memccpy(array_for_Riemann, arrayTemp, gridSize*sizeof(double));
-    }
-    
-
-
-
-    return Riemann;
-}
-
-/*
- *Calculates the solution to the Euler Equation at a given gridpoint
- *for the density
- *This is used to calculate the flux though a cell wall
- */
-double EulerEquationDensity(double *tempDensity, int j)
-/*
- * rho * u
- * which is q(2) in leveque, or tempDensity
- */
-{
-    double solution = tempDensity[j];
-
-    return solution;
-}
-
-double EulerEquationMomentum(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
-/*
- * (rho *  u^2) + pressure
- * which is q(2)^2 / q(1) + pressure(q)
- */
-{
-    double solution = (pow(tempPressure[j],2) / tempDensity[j]) + pressure(tempVelocity, tempPressure, tempDensity, j);
-
-    return solution;
-}
-
-double EulerEquationEnergy(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
-/*
- * (E + pressure) * u
- *
- * E = (pressure/gamma-1) + 1/2 * rho * u^2
- * 
- * which is q(2) * [q(3) pressure(q)] / q(1)
- */
-{
-    double solution = tempPressure[j] * (tempVelocity[j] + pressure(tempDensity, tempPressure, tempVelocity, j)) / tempDensity[j];
-
-    return solution;
-}
-
-double pressure(double *tempDensity, double *tempPressure, double *tempVelocity, int j)
-{
-    double pressure = tempVelocity[j] * (gamma_val-1) - 0.5 * (pow(tempPressure[j],2) / tempDensity[j]);
-
-    return pressure;
-}

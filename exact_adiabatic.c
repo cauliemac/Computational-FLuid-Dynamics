@@ -161,7 +161,6 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
 //void adiflux(double left_state, double right_state, double dx, double dt, int perp, double *resolved_state)
 void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state* riemann_cell_state)
 {
-  
 	extern double CFL; //GAMMA[N_CHARGED_FLUIDS];
   /*
    * Local variables:-
@@ -489,18 +488,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 	//resolved_state = [density,u,p,c_v];
 
 	
-	riemann_cell_state->Density = density; //{density,p,u};
+	riemann_cell_state->Density = density;
 	riemann_cell_state->Pressure = p;
 	riemann_cell_state->Velocity = u;
-
-	//return riemann_cell_state;
-
-	/*
-	(*resolved_state).c[0] = density;
-	(*resolved_state).c[perp] = u;
-
-	(*resolved_state).c[4] = p;
-	(*resolved_state).c[8] = psi;
-	(*resolved_state).c_v = c_v;
-	*/
 }
