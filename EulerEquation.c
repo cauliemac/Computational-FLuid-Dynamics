@@ -55,7 +55,7 @@ int main ()
     printf("Courant number: %f\n", courant);
 
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 0, 30, 0);
+    getInitialConditions(initialConditions, gridSize, 0, 15, 0);
 
     Sleep(2000);
 
@@ -65,7 +65,7 @@ int main ()
     for(int i=0; i<=100; ++i)
     {
         printf("\r[%3d%%]",i);
-        Sleep(100);
+        Sleep(10);
     } 
     printf("\n");
     system("pause");
@@ -220,6 +220,14 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
         velocityLeft = riemann_cell_state.Velocity;
 
         adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
+
+        printf("the adiflux return at j = %i is:\n",j);
+        printf("Density is = %f\n",riemann_cell_state.Density);
+        printf("Pressure is = %f\n",riemann_cell_state.Pressure);
+        printf("Velocity is = %f\n",riemann_cell_state.Velocity);
+        printf("\n");
+
+        //Sleep(2000);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
