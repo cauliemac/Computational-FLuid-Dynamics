@@ -65,7 +65,7 @@ int main ()
     for(int i=0; i<=100; ++i)
     {
         printf("\r[%3d%%]",i);
-        Sleep(10);
+        //Sleep(10);
     } 
     printf("\n");
     system("pause");
@@ -112,15 +112,17 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 
             if (i >= a_ratio && i <= b_ratio)   
             {
-                initialConditions[i] = 0.5;
+                initialConditions[i] = 5;
             }
             else
             {
                 initialConditions[i] = 0.2;
             }
+            
+            //writing files to solution text file
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
-            //fprintf(initial_pressure, " %i \t %f\n", i, initialConditions[i]);
-            //fprintf(initial_velocity, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_pressure, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_velocity, " %i \t %f\n", i, 0); //velocity is 0
         }
     }
     //memcpy to copy initial conditions onto the solution array
@@ -166,7 +168,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 
         FILE *velocityFile = NULL;
         // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 256000, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
         velocityFile = fopen(buffer, "w");
 
         //calculates the next value of the current cell
@@ -178,10 +180,13 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
             //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
  
             //print the x axis label (which is j) and the solution to a text file
+            //fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
+
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
-            fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
-            fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
-        }
+            fprintf(pressureFile, "%i \t %f\n", j, temp_cell_state.Pressure[j]);
+            fprintf(velocityFile, "%i \t %f\n", j, j);//solution_cell_state.Velocity[j]);
+            //TODO BUG IN PRINT TO FILE!!!!!
+         }
         fclose(densityFile);
         fclose(pressureFile);
         fclose(velocityFile);
@@ -219,19 +224,24 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
-        adiflux(temp_cell_state, Left+1, Right+1, dx, dt, &riemann_cell_state);
+        Left = j;
+        Right = j+1;
+        
+        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
 
+        /*
         printf("the adiflux return at j = %i is:\n",j);
         printf("Density is = %f\n",riemann_cell_state.Density);
         printf("Pressure is = %f\n",riemann_cell_state.Pressure);
         printf("Velocity is = %f\n",riemann_cell_state.Velocity);
         printf("\n");
+        */
 
         //Sleep(2000);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
-        velocityRight = riemann_cell_state.Velocity;
+        velocityRight = 10;//riemann_cell_state.Velocity;
     }
     else
     {
@@ -247,7 +257,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     //return solution_cell_state;
     solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
-    solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
+    solution_cell_state.Velocity[j] = 10;//temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
 
     
 }
