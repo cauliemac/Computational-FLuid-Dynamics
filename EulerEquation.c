@@ -185,8 +185,11 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
             //print the x axis label (which is j) and the solution to a text file
             //fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
 
-            printf("Solution Densisty after Godunov at j=%i is %f\n",j,solution_cell_state.Density[j]);
-            system("pause");
+            //printf("Solution densisty after Godunov at j=%i is %f\n",j,solution_cell_state.Density[j]);
+            //printf("-------------------------------------------------------\n");
+            //system("pause");
+
+            //solution_cell_state.Density[j] = 10;
 
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
@@ -271,8 +274,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - 0.01;//courant * (pressureRight - pressureLeft);
     solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] + 0.01;//courant * (velocityRight - velocityLeft);
 
-    printf("solution density at j=%i in Godunov is %f\n",j,solution_cell_state.Density[j]);
-    system("pause");
+    //printf("solution density at j=%i in Godunov is %f\n",j,solution_cell_state.Density[j]);
+    //system("pause");
 
     double temppp;
     temppp = courant * (densityRight - densityLeft);

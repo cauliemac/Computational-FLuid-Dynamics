@@ -259,22 +259,6 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 				else 
 					p = pow(p,gr);
 			}
-			else // Have to do rarefactions with different gammas
-			{
-
-				/* Calculate the constants for the iteration */
-
-				t1=2.0*cl/(rhol*gl*pow(pl,gl));//left going wave
-				t2=2.0*cr/(rhor*gr*pow(pr,gr));//right going wave
-				t3=ul-ur+2.0*((cr/(rhor*gr))+(cl/(rhol*gl)));//if left going wave is heading right relative to gas
-
-				p=fmin(pl,pr); // Simple first estimate for p
-
-				p=newt(p,0.0,1.0e+10*pr, t1, t2, t3, gl, gr, &newt_check);
-				if(newt_check) /* rtnewt has failed for function or #iter */
-					p=rtbis(1.0e-10*pr,p,1.0e-04*pr, t1, t2, t3, gl, gr); /* Try bisection */
-
-			}
 		}
     else
 	{
@@ -498,4 +482,11 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 	riemann_cell_state->Density = density;
 	riemann_cell_state->Pressure = p;
 	riemann_cell_state->Velocity = u;
+
+	/*
+	printf("inside adiabatic.c density = %f\n",density);
+	printf("inside adiabatic.c pressure = %f\n",p);
+	printf("inside adiabatic.c velocitty = %f\n",u);
+	system("pause");
+	*/
 }
