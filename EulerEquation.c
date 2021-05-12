@@ -184,8 +184,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, temp_cell_state.Pressure[j]);
-            fprintf(velocityFile, "%i \t %f\n", j, j);//solution_cell_state.Velocity[j]);
-            //TODO BUG IN PRINT TO FILE!!!!!
+            fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
          }
         fclose(densityFile);
         fclose(pressureFile);
@@ -241,7 +240,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
-        velocityRight = 10;//riemann_cell_state.Velocity;
+        velocityRight = riemann_cell_state.Velocity;
     }
     else
     {
@@ -257,8 +256,31 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     //return solution_cell_state;
     solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
     solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
-    solution_cell_state.Velocity[j] = 10;//temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
+    solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
 
+    double temppp;
+    temppp = courant * (densityRight - densityLeft);
+
+    for(int i = 14; i > 17;i++)
+    {
+        printf("Density at %d is = %f\n",i,riemann_cell_state.Density[i]);
+        printf("Pressure at %d is = %f\n",i,riemann_cell_state.Pressure[i]);
+        printf("Velocity %d is = %f\n",i,riemann_cell_state.Velocity[i]);
+        system("\npause\n");
+    }
+    printf("\n");
+    
+    if (j == 16)
+    {
+        printf("solution density is = %f   \n", solution_cell_state.Density[j]);
+        printf("correction is = %f\n", temppp);
+        
+        printf("the adiflux return at j = %i is:\n",j);
+        
+        
+
+        system("\npause\n");
+    }
     
 }
 

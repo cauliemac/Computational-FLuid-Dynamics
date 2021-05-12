@@ -181,6 +181,9 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 	ur  = temp_cell_state.Velocity[Right]/rhor;//speed right
 	pr =  temp_cell_state.Pressure[Right];// pressure right
 
+	//printf("\nadiflux function started");
+	//TODO
+
   /***************************************************************************
    *                                                                         *
    *                         Linear Riemann solver                           *
@@ -204,6 +207,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 
   //find value of the pressure
   p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
+  printf("\n\npressure is equal to %f ",p);
   if(p<= 0.0)
   {
     //negative pressure cannot exist, so set it to a small number instead
@@ -231,7 +235,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
       *                       Non-linear Riemann solver                         *
       *                                                                         *
       ***************************************************************************/
-
+	 	printf("\nnon-Linear Riemann function started");
+		//TODO
 		if((p < pl) && (p < pr))
 		{
 
