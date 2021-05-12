@@ -207,7 +207,9 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 
   //find value of the pressure
   p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
-  printf("\n\npressure is equal to %f ",p);
+  //printf("\n\npressure is equal to %f ",p);
+  //TODO remove this
+
   if(p<= 0.0)
   {
     //negative pressure cannot exist, so set it to a small number instead
@@ -235,7 +237,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
       *                       Non-linear Riemann solver                         *
       *                                                                         *
       ***************************************************************************/
-	 	printf("\nnon-Linear Riemann function started");
+	 	printf("\nnon-Linear Riemann function started\n");
 		//TODO
 		if((p < pl) && (p < pr))
 		{
