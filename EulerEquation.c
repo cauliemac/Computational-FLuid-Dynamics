@@ -149,10 +149,10 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
     for (int i = 0; i < evolutions; i++)
     {
         //copies the solutions array onto the temp array
-       //temp_cell_state = solution_cell_state;
-       memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize * sizeof(double));
-       memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize * sizeof(double));
-       memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize * sizeof(double));
+        temp_cell_state = solution_cell_state;
+        //memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize * sizeof(double));
+        //memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize * sizeof(double));
+        //memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize * sizeof(double));
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
@@ -185,10 +185,20 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
             //print the x axis label (which is j) and the solution to a text file
             //fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
 
+            printf("Solution Densisty after Godunov at j=%i is %f\n",j,solution_cell_state.Density[j]);
+            system("pause");
+
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
             fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
-         }
+        }
+        /*for (int j = 1; j < gridSize-1; j++)
+        {
+           fprintf(densityFile, "%i test \t %f\n", j, solution_cell_state.Density[j]);
+           fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
+           fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
+        }
+        */
         fclose(densityFile);
         fclose(pressureFile);
         fclose(velocityFile);
@@ -257,14 +267,18 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     //TODO fix slope limiters for res
 
     //return solution_cell_state;
-    solution_cell_state.Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-    solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
-    solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
+    solution_cell_state.Density[j] = 10;//temp_cell_state.Density[j] - 0.01;//courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+    solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - 0.01;//courant * (pressureRight - pressureLeft);
+    solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] + 0.01;//courant * (velocityRight - velocityLeft);
+
+    printf("solution density at j=%i in Godunov is %f\n",j,solution_cell_state.Density[j]);
+    system("pause");
 
     double temppp;
     temppp = courant * (densityRight - densityLeft);
 
     
+    /*
     printf("Density right at %d is = %f\n",j,densityRight);
     printf("Pressure right at %d is = %f\n",j,pressureRight);
     printf("Velocity right at %d is = %f\n",j,velocityRight);
