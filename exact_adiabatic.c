@@ -263,13 +263,13 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
     else
 	{
       /* 
-       * Iterative solution for shock/rarefaction 
+       * Iterative solution for shock/rarefaction
        *
        *        Initialise iteration
        */
       pi = p;
-		wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
-		wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
+		wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
+		wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
       iter = 0;
       p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 		if(p<0.0) 
@@ -283,8 +283,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
       while(fabs((p-pi)/p) > 0.1 && iter < 20)
 	  {
    		pi = p;
-			wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
-			wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
+			wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
+			wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
       	p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 			if(p<0.0) 
 				p=1.0e-10; /* if <0 treat it as zero */
@@ -311,8 +311,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
      }
   */
 
-  wleft = -cl;//*wave(p,pl,gl);	TODO FIX THE WAVE() FUNCTION
-  wright = cr;//*wave(p,pr,gr);	TODO FIX THE WAVE() FUNCTION
+  wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
+  wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
   u = (wright*ur - wleft*ul - pr + pl)/(wright -wleft);
   
   /*

@@ -59,10 +59,12 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
 
 //a function to impliment the godunov Scheme
-void GodunovScheme(cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state);
+void GodunovScheme(cell_state temp_cell_state, cell_state* solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state);
 
 //starts the process of the next evolution of the godunov scheme
 double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state);
 
 //Calculates the resolved state given the left and right states.
 void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state* riemann_cell_state);
+
+double wave(double p,double pi, double gamma);

@@ -178,7 +178,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         for (int j = 1; j < gridSize-1; j++)
         {
            
-            GodunovScheme(temp_cell_state, solution_cell_state, j, dx, dt, riemann_cell_state);
+            GodunovScheme(temp_cell_state, &solution_cell_state, j, dx, dt, riemann_cell_state);
 
             //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
  
@@ -214,7 +214,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
  *to calculate the next value of a gridpoint
 
  */
-void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state){
+void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state){
 
     double Godunov;
     double densityLeft, densityRight;
@@ -222,7 +222,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     double velocityLeft, velocityRight;
     int Left, Right;
 
-    if (solution_cell_state.Velocity[j] >= 0)
+    if (solution_cell_state->Velocity[j] >= 0)
     {
         Left = j-1;
         Right = j;
@@ -270,9 +270,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state solution_cell_state, 
     //TODO fix slope limiters for res
 
     //return solution_cell_state;
-    solution_cell_state.Density[j] = 10;//temp_cell_state.Density[j] - 0.01;//courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-    solution_cell_state.Pressure[j] = temp_cell_state.Pressure[j] - 0.01;//courant * (pressureRight - pressureLeft);
-    solution_cell_state.Velocity[j] = temp_cell_state.Velocity[j] + 0.01;//courant * (velocityRight - velocityLeft);
+    solution_cell_state->Density[j] = temp_cell_state.Density[j] - courant * (densityRight - densityLeft);// - 0.5 * courant * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+    solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
+    solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
 
     //printf("solution density at j=%i in Godunov is %f\n",j,solution_cell_state.Density[j]);
     //system("pause");
