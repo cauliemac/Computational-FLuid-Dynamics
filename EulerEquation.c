@@ -262,9 +262,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     {
         Left = j;
         Right = j+1;
-        printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\nEXITING");
+        //printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\nEXITING");
         //TODO THIS NEEDS TO BE FIXED
-        system("pause");
+        //system("pause");
     }
  
     //TODO fix slope limiters for res

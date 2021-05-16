@@ -67,4 +67,5 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 //Calculates the resolved state given the left and right states.
 void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state* riemann_cell_state);
 
+//This function calculates the wave speed for a wave connecting states with pressures, pi, p ahead and behind respectively
 double wave(double p,double pi, double gamma);

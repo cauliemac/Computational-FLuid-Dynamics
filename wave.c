@@ -1,6 +1,6 @@
 /*
  * This function calculates the wave speed for a wave connecting states with
- * pressures pi, p ahead an behind respectively
+ * pressures pi, p ahead and behind respectively
  *
  * Arguments:-
  * Pressure in upstream state, pi
@@ -13,8 +13,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "defs.h"
-#include "typedefs.h"
 #include "functions.h"
 
 /*! Finds wave speed between two pressure states.
