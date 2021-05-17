@@ -233,19 +233,19 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         if(densityRight < 0)
         {
-            densityRight = 1.0e-10;
+            densityRight = 1.0e-3;
         }
         if(densityLeft < 0)
         {
-            densityLeft = 1.0e-10;
+            densityLeft = 1.0e-3;
         }
         if(pressureRight < 0)
         {
-            pressureRight = 1.0e-10;
+            pressureRight = 1.0e-3;
         }
         if(pressureLeft < 0)
         {
-            pressureLeft = 1.0e-10;
+            pressureLeft = 1.0e-3;
         }
     }
     else
@@ -273,19 +273,19 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         if(densityRight < 0)
         {
-            densityRight = 1.0e-10;
+            densityRight = 1.0e-3;
         }
         if(densityLeft < 0)
         {
-            densityLeft = 1.0e-10;
+            densityLeft = 1.0e-3;
         }
         if(pressureRight < 0)
         {
-            pressureRight = 1.0e-10;
+            pressureRight = 1.0e-3;
         }
         if(pressureLeft < 0)
         {
-            pressureLeft = 1.0e-10;
+            pressureLeft = 1.0e-3;
         }
     }
  
@@ -303,11 +303,11 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     //needs to be fixed
     if(solution_cell_state->Density[j] < 0)
     {
-        solution_cell_state->Density[j] =0.000000001;
+        solution_cell_state->Density[j] =0.01;
     }
     if(solution_cell_state->Pressure[j] < 0)
     {
-        solution_cell_state->Pressure[j] =0.000000001;
+        solution_cell_state->Pressure[j] =0.01;
     }
     if(solution_cell_state->Velocity[j] > 10*temp_cell_state.Velocity[j])
     {
