@@ -32,6 +32,7 @@ double rtbis(double x1,double x2,double xacc, double t1, double t2, double t3, d
 //Calculates various functions of gamma, the ratio of specific heats
 void gamma_calc(double gamma, double *g);
 
+//size of grid
 #define gridSize 100
 
 //structs to hold the cell data
