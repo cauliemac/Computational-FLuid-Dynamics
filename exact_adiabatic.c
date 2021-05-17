@@ -206,15 +206,27 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 
   //find value of the pressure
   p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
-  //printf("\n\npressure is equal to %f ",p);
+  
+  if (p<0)
+  {
+	//printf("\n\npressure is equal to %f \n",p);
+  	//system("pause");
+	  //TODO
+  }
+
   //TODO remove this
 
   if(p<= 0.0)
   {
     //negative pressure cannot exist, so set it to a small number instead
 	//printf("Negative pressure in linear Riemann solver\n");
-    printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); 
+    //printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); 
+	//TODO
+	
     p = 1.0e-06;
+	//printf("new p is %f", p);
+	//system("pause");
+	//TODO
   }
 
   /***************************************************************************
@@ -236,7 +248,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
       *                       Non-linear Riemann solver                         *
       *                                                                         *
       ***************************************************************************/
-	 	printf("\nnon-Linear Riemann function started\n");
+	 	//printf("\nnon-Linear Riemann function started\n");
 		//TODO
 		if((p < pl) && (p < pr))
 		{
@@ -251,7 +263,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 
 				if(p<0.0) // Gas is expanding to form a vacuum (bad news!)
 				{
-					printf("Negative pressures in rarefaction solver: %lf\n",pow(-p,gr));
+					//printf("Negative pressures in rarefaction solver: %lf\n",pow(-p,gr));
+					//TODO
 					p=5.0e-11*(pr+pl); 
 				}
 				
@@ -267,8 +280,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
        *        Initialise iteration
        */
       pi = p;
-		wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
-		wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
+		wleft = -cl*wave(p,pl,gl);
+		wright = cr*wave(p,pr,gr);
       iter = 0;
       p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 		if(p<0.0) 
@@ -282,8 +295,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
       while(fabs((p-pi)/p) > 0.1 && iter < 20)
 	  {
    		pi = p;
-			wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
-			wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
+			wleft = -cl*wave(p,pl,gl);
+			wright = cr*wave(p,pr,gr);
       	p = (wright*pl - wleft*pr + wright*wleft*(ur - ul))/(wright - wleft);
 			if(p<0.0) 
 				p=1.0e-10; /* if <0 treat it as zero */
@@ -310,8 +323,13 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
      }
   */
 
-  wleft = -cl*wave(p,pl,gl);	//TODO FIX THE WAVE() FUNCTION
-  wright = cr*wave(p,pr,gr);	//TODO FIX THE WAVE() FUNCTION
+ if(p<0)
+ {
+	 p = 1.0e-10;
+ }
+
+  wleft = -cl*wave(p,pl,gl);
+  wright = cr*wave(p,pr,gr);
   u = (wright*ur - wleft*ul - pr + pl)/(wright -wleft);
   
   /*
@@ -324,7 +342,6 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
      */
     density = wleft*rhol/(wleft - (u -ul)*rhol);
 
-	//g5 = gl;
 	c_v = 1.0/(gl-1.0);
     
     /*
@@ -450,6 +467,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
   if(density < 0.0)
   {
 	fprintf(stderr,"Had to fix density: %e -> %e\n", density, p);
+	//TODO
 	density = p;
   }
   if(isnan(p))// Checks if the pressure is Not A Number (NAN)

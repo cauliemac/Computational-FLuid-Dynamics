@@ -104,7 +104,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //TODO In future versions this height should be a variable
     else
     {
-        printf("Initial Conditions = Square Wave from %d to %d", a, b);
+        printf("Initial Conditions = Square Wave from %d to %d % of grid", a, b);
         for (int i=0; i<gridSize; i++)
         {                
             float a_ratio = a*gridSize/100;
@@ -112,7 +112,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 
             if (i >= a_ratio && i <= b_ratio)   
             {
-                initialConditions[i] = 0.5;
+                initialConditions[i] = 0.3;
             }
             else
             {
@@ -128,7 +128,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //memcpy to copy initial conditions onto the solution array
     memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
     memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
-    memcpy(solution_cell_state.Velocity, initialConditions, gridSize * sizeof(double));
+    //memcpy(solution_cell_state.Velocity, initialConditions, gridSize * sizeof(double));
     
     fclose(initial_density);
     fclose(initial_pressure);
@@ -177,31 +177,12 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         //calculates the next value of the current cell
         for (int j = 1; j < gridSize-1; j++)
         {
-           
             GodunovScheme(temp_cell_state, &solution_cell_state, j, dx, dt, riemann_cell_state);
-
-            //printf("Pressure at %i is =  %f\n", j, solutionVelocity[j]);
- 
-            //print the x axis label (which is j) and the solution to a text file
-            //fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
-
-            //printf("Solution densisty after Godunov at j=%i is %f\n",j,solution_cell_state.Density[j]);
-            //printf("-------------------------------------------------------\n");
-            //system("pause");
-
-            //solution_cell_state.Density[j] = 10;
 
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
             fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
         }
-        /*for (int j = 1; j < gridSize-1; j++)
-        {
-           fprintf(densityFile, "%i test \t %f\n", j, solution_cell_state.Density[j]);
-           fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
-           fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
-        }
-        */
         fclose(densityFile);
         fclose(pressureFile);
         fclose(velocityFile);
@@ -224,6 +205,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
     if (solution_cell_state->Velocity[j] >= 0)
     {
+        //Left cell interfaces
         Left = j-1;
         Right = j;
 
@@ -239,32 +221,72 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
+        //right cell interfaces
         Left = j;
         Right = j+1;
         
         adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
 
-        /*
-        printf("the adiflux return at j = %i is:\n",j);
-        printf("Density is = %f\n",riemann_cell_state.Density);
-        printf("Pressure is = %f\n",riemann_cell_state.Pressure);
-        printf("Velocity is = %f\n",riemann_cell_state.Velocity);
-        printf("\n");
-        */
+        densityRight = riemann_cell_state.Density;
+        pressureRight = riemann_cell_state.Pressure;
+        velocityRight = riemann_cell_state.Velocity;
 
-        //Sleep(2000);
+        if(densityRight < 0)
+        {
+            densityRight = 1.0e-10;
+        }
+        if(densityLeft < 0)
+        {
+            densityLeft = 1.0e-10;
+        }
+        if(pressureRight < 0)
+        {
+            pressureRight = 1.0e-10;
+        }
+        if(pressureLeft < 0)
+        {
+            pressureLeft = 1.0e-10;
+        }
+    }
+    else
+    {
+        //Left cell interfaces
+        Left = j;
+        Right = j+1;
+
+        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
+        
+        densityLeft = riemann_cell_state.Density;
+        pressureLeft = riemann_cell_state.Pressure;
+        velocityLeft = riemann_cell_state.Velocity;
+
+        //right cell interfaces
+        Left = j+1;
+        Right = j+2;
+        
+        adiflux(temp_cell_state, Left, Right, dx, dt, &riemann_cell_state);
 
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
         velocityRight = riemann_cell_state.Velocity;
-    }
-    else
-    {
-        Left = j;
-        Right = j+1;
-        //printf("\n ERROR IN NEGATIVE VELOCITY!!!!!\nEXITING");
         //TODO THIS NEEDS TO BE FIXED
-        //system("pause");
+
+        if(densityRight < 0)
+        {
+            densityRight = 1.0e-10;
+        }
+        if(densityLeft < 0)
+        {
+            densityLeft = 1.0e-10;
+        }
+        if(pressureRight < 0)
+        {
+            pressureRight = 1.0e-10;
+        }
+        if(pressureLeft < 0)
+        {
+            pressureLeft = 1.0e-10;
+        }
     }
  
     //TODO fix slope limiters for res
@@ -274,38 +296,23 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - courant * (pressureRight - pressureLeft);
     solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - courant * (velocityRight - velocityLeft);
 
-    //printf("solution density at j=%i in Godunov is %f\n",j,solution_cell_state.Density[j]);
-    //system("pause");
 
-    double temppp;
-    temppp = courant * (densityRight - densityLeft);
 
-    
-    /*
-    printf("Density right at %d is = %f\n",j,densityRight);
-    printf("Pressure right at %d is = %f\n",j,pressureRight);
-    printf("Velocity right at %d is = %f\n",j,velocityRight);
-    //system("\npause\n");
-    printf("\n");
-
-    printf("Density left at %d is = %f\n",j,densityLeft);
-    printf("Pressure left at %d is = %f\n",j,pressureLeft);
-    printf("Velocity left at %d is = %f\n",j,velocityLeft);
-    system("\npause\n");
-    printf("\n");
-    /*
-    if (j == 16)
+    //TODO
+    //these are non physical fixes to stop runaway numbers
+    //needs to be fixed
+    if(solution_cell_state->Density[j] < 0)
     {
-        printf("solution density is = %f   \n", solution_cell_state.Density[j]);
-        printf("correction is = %f\n", temppp);
-        
-        printf("the adiflux return at j = %i is:\n",j);
-        
-        
-
-        system("\npause\n");
+        solution_cell_state->Density[j] =0.000000001;
     }
-    */
+    if(solution_cell_state->Pressure[j] < 0)
+    {
+        solution_cell_state->Pressure[j] =0.000000001;
+    }
+    if(solution_cell_state->Velocity[j] > 10*temp_cell_state.Velocity[j])
+    {
+        solution_cell_state->Velocity[j] = 2*temp_cell_state.Velocity[j];
+    }
 }
 
 //picks a slope limiter from a list in SlopeLimiters.c
