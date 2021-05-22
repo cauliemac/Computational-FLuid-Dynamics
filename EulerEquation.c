@@ -236,6 +236,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (dt/dx) * (pressureRight - pressureLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
         solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (dt/dx) * (velocityRight - velocityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
         
+        //Conservation of Momentum = rho*u
+        //Conservation of Energy = (rho * u^2) + p
+        //Equation of state = u*(E + p)
     }
     else
     {
