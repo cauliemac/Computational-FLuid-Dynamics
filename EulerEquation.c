@@ -26,7 +26,8 @@ float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
 
 cell_state temp_cell_state, solution_cell_state;
-interface_cell_state riemann_cell_state; 
+interface_cell_state riemann_cell_state;
+conservative_variables temp_conserve, solution_conserve;
 
 //creates three initial conditions arrays for Mass, Momentum, and Energy
 double initialDensity[gridSize];
@@ -77,7 +78,7 @@ int main ()
  *of the whole grid (if sine==0)
  */
 //TODO return error if initial conditions are wrong
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine)
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int is_sine)
 {
     //create and open a file in write mode to store the initial conditions
     FILE *initial_density = NULL;
@@ -87,8 +88,10 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     FILE *initial_velocity = NULL;
     initial_velocity = fopen("EulerEquation_1D_results/_EulerInitialVelocity.txt", "w");
 
+    double zero[gridSize];
+    
     //populates array with one wavelength sine wave
-    if (sine == 1)
+    if (is_sine == 1)
     {
         printf("Initial Conditions = Sine Wave");
         for (int i=0; i<gridSize; i++)
@@ -117,6 +120,8 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
             {
                 initialConditions[i] = 0.2;
             }
+
+            zero[i] = 0;
             
             //writing files to solution text file
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
@@ -127,6 +132,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //memcpy to copy initial conditions onto the solution array
     memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
     memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Velocity, zero, gridSize * sizeof(double));
 
     fclose(initial_density);
     fclose(initial_pressure);
@@ -146,12 +152,6 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 
     for (int i = 0; i < evolutions; i++)
     {
-        //copies the solutions array onto the temp array
-        temp_cell_state = solution_cell_state;
-
-        //gets the variable time step dt
-        dt = getDT(temp_cell_state, courant, dx);
-
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
          *changes file name with evolution cycle.
@@ -167,14 +167,30 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
 
+        //opens files in write mode
         densityFile = fopen(buffer, "w");
         pressureFile = fopen(buffer, "w");
         velocityFile = fopen(buffer, "w");
 
+        //copies the solutions array onto the temp array
+        temp_cell_state = solution_cell_state;
+        temp_conserve = solution_conserve;
+
+        //gets the variable time step dt
+        dt = getDT(temp_cell_state, courant, dx);
+
+        //sets the values for the conserved variables for the evolution
+        for (int i = 0; i< gridSize; i++)
+        {
+            temp_conserve.Mass[i] = temp_cell_state.Density[i] * dx;
+            temp_conserve.Momentum[i] = temp_conserve.Mass[i] * temp_cell_state.Velocity[i] * dx;
+            temp_conserve.Energy[i] = (temp_cell_state.Pressure[i] / (gamma_val - 1)) + 0.5 * temp_cell_state.Pressure[i] * (pow(temp_cell_state.Velocity[i],2)) * dx;
+        }
+
         //calculates the next value of the current cell
         for (int j = 1; j < gridSize-2; j++)
         {
-            GodunovScheme(temp_cell_state, &solution_cell_state, j, dx, dt, riemann_cell_state);
+            GodunovScheme(temp_cell_state, &solution_cell_state, temp_conserve, solution_conserve, j, dx, dt, riemann_cell_state);
 
             fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
             fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
@@ -192,7 +208,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
  *to calculate the next value of a gridpoint
 
  */
-void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state){
+void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state, conservative_variables temp_conserve, conservative_variables solution_conserve, int j, double dx, double dt, interface_cell_state riemann_cell_state){
 
     double Godunov;
     double densityLeft, densityRight;
@@ -201,6 +217,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     int Left, Right;
     double variable_dt;
     double c_Left, c_right;
+
+    double MassLeft, MomentumLeft, EnergyLeft;
+    double MassRight, MomentumRight, EnergyRight;
 
     if (solution_cell_state->Velocity[j] >= 0)
     {
@@ -220,6 +239,11 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
+        //convert primitive variables to conservative variables
+        MassLeft = densityLeft * dx;
+        MomentumLeft = MassLeft * velocityLeft * dx;
+        EnergyLeft = (pressureLeft / (gamma_val - 1)) + 0.5 * densityLeft * (pow(velocityLeft,2)) * dx;
+
         //right cell interfaces
         Left = j;
         Right = j+1;
@@ -230,12 +254,28 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureRight = riemann_cell_state.Pressure;
         velocityRight = riemann_cell_state.Velocity;
 
+        //convert primitive variables to conservative variables
+        MassRight = densityRight * dx;
+        MomentumRight = MassRight * velocityRight * dx;
+        EnergyRight = (pressureRight / (gamma_val - 1)) + 0.5 * densityRight * (pow(velocityRight,2)) * dx;
+
         //return solution_cell_state;
         
-        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (dt/dx) * (densityRight - densityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (dt/dx) * (pressureRight - pressureLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
-        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (dt/dx) * (velocityRight - velocityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
+        //TODO remove these incorrect flux calculations
+        //solution_cell_state->Density[j] = temp_cell_state.Density[j] - (dt/dx) * (densityRight - densityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        //solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (dt/dx) * (pressureRight - pressureLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
+        //solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (dt/dx) * (velocityRight - velocityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
         
+        //TODO fix second order part. should be something like u*dx/dt (check leveque)
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+
+        //convert back to primitave variables
+        solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
+        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j] / solution_cell_state->Density[j] / dx;
+        solution_cell_state->Pressure[j] = (solution_conserve.Energy[j]/dx - 0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2)) * (gamma_val-1);
+
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
         //Equation of state = u*(E + p)
@@ -252,6 +292,11 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
 
+        //convert primitive variables to conservative variables
+        MassLeft = densityLeft * dx;
+        MomentumLeft = MassLeft * velocityLeft * dx;
+        EnergyLeft = (pressureLeft / (gamma_val - 1)) + 0.5 * densityLeft * (pow(velocityLeft,2)) * dx;
+
         //right cell interfaces
         Left = j+1;
         Right = j+2;
@@ -263,15 +308,26 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         velocityRight = riemann_cell_state.Velocity;
         //TODO THIS NEEDS TO BE FIXED
 
-        //return solution_cell_state;
-        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (variable_dt/dx) * (densityLeft - densityRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (variable_dt/dx) * (pressureLeft - pressureRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
-        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (variable_dt/dx) * (velocityLeft - velocityRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
+        //convert primitive variables to conservative variables
+        MassRight = densityRight * dx;
+        MomentumRight = MassRight * velocityRight * dx;
+        EnergyRight = (pressureRight / (gamma_val - 1)) + 0.5 * densityRight * (pow(velocityRight,2)) * dx;
+
+        //TODO fix second order part. should be something like u*dx/dt (check leveque)
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft);// - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+
+        //convert back to primitave variables
+        solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
+        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j] / solution_cell_state->Density[j] / dx;
+        solution_cell_state->Pressure[j] = (solution_conserve.Energy[j]/dx - 0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2)) * (gamma_val-1);
+
+        //Conservation of Momentum = rho*u
+        //Conservation of Energy = (rho * u^2) + p
+        //Equation of state = u*(E + p)
     }
  
-    
-
-
     //TODO
     //these are non physical fixes to stop runaway numbers
     //needs to be fixed
@@ -336,7 +392,7 @@ double getDT(cell_state temp_cell_state, double courant, double dx)
     dt = courant * (dx/maxSignalSpeed);
 
     printf("dt was found to be %f\n", dt);
-    system("pause");
+    //system("pause");
 
     return dt;
 }

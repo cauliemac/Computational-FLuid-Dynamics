@@ -52,15 +52,25 @@ typedef struct INTERFACE_CELL_STATE
 
 }interface_cell_state;
 
+typedef struct CONSERVATIVE_VARIALBES
+{
+    double Mass[gridSize];
+    double Momentum[gridSize];
+    double Energy[gridSize];
+
+}conservative_variables;
+
 //TODO UPDATE TO WORK WITH STRUCTS
 //returns a grid with a different height between a and b
-static double getInitialConditions(double *initialConditions, int grid, int a, int b, int sine);
+static double getInitialConditions(double *initialConditions, int grid, int a, int b, int is_sine);
+
+//double populateGrid(double *initialConditions, double heightLeft, double heightRight,int percentRight, int is_Sine);
 
 //a function to pick between slope limiters
 double chooseSlopeLimiter(double *tempArray, int j, int SlopeType);
 
 //a function to impliment the godunov Scheme
-void GodunovScheme(cell_state temp_cell_state, cell_state* solution_cell_state, int j, double dx, double dt, interface_cell_state riemann_cell_state);
+void GodunovScheme(cell_state temp_cell_state, cell_state* solution_cell_state, conservative_variables temp_conserve, conservative_variables solution_conserve, int j, double dx, double dt, interface_cell_state riemann_cell_state);
 
 //starts the process of the next evolution of the godunov scheme
 double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state);
