@@ -127,7 +127,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //memcpy to copy initial conditions onto the solution array
     memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
     memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
-        
+
     fclose(initial_density);
     fclose(initial_pressure);
     fclose(initial_velocity);
@@ -148,6 +148,9 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
     {
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
+
+        //gets the variable time step dt
+        dt = getDT(temp_cell_state, courant, dx);
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
@@ -196,20 +199,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     double pressureLeft, pressureRight;
     double velocityLeft, velocityRight;
     int Left, Right;
-    double variableTime;
-
-    //setting the variable courant number using the max wave speed
-    //(wave speed * dt)/ dx
-    //variableTime = (abs(largest(temp_cell_state.Velocity, sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))) * dt) / dx;
-    
-    variableTime = (courant * dx)/(largest(temp_cell_state.Velocity, (sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))));
-
-    if (largest(temp_cell_state.Velocity, sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))==0)
-    {
-        variableTime = 0.05;
-    }
-    
-    variableTime = 0.005;
+    double variable_dt;
+    double c_Left, c_right;
 
     if (solution_cell_state->Velocity[j] >= 0)
     {
@@ -241,9 +232,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         //return solution_cell_state;
         
-        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (variableTime/dx) * (densityRight - densityLeft) - 0.5 * variableTime * (dx - variableTime)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (variableTime/dx) * (pressureRight - pressureLeft) - 0.5 * variableTime * (dx - variableTime)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
-        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (variableTime/dx) * (velocityRight - velocityLeft) - 0.5 * variableTime * (dx - variableTime)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
+        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (dt/dx) * (densityRight - densityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (dt/dx) * (pressureRight - pressureLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
+        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (dt/dx) * (velocityRight - velocityLeft) - 0.5 * dt * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
         
     }
     else
@@ -270,9 +261,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         //TODO THIS NEEDS TO BE FIXED
 
         //return solution_cell_state;
-        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (variableTime/dx) * (densityLeft - densityRight) - 0.5 * variableTime * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
-        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (variableTime/dx) * (pressureLeft - pressureRight) - 0.5 * variableTime * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
-        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (variableTime/dx) * (velocityLeft - velocityRight) - 0.5 * variableTime * (dx - dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
+        solution_cell_state->Density[j] = temp_cell_state.Density[j] - (variable_dt/dx) * (densityLeft - densityRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Density,j,slope_limiter_type));
+        solution_cell_state->Pressure[j] = temp_cell_state.Pressure[j] - (variable_dt/dx) * (pressureLeft - pressureRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Pressure,j,slope_limiter_type));
+        solution_cell_state->Velocity[j] = temp_cell_state.Velocity[j] - (variable_dt/dx) * (velocityLeft - velocityRight) - 0.5 * variable_dt * (dx - variable_dt)*(chooseSlopeLimiter(temp_cell_state.Velocity,j,slope_limiter_type));
     }
  
     
@@ -313,18 +304,36 @@ double chooseSlopeLimiter(double *tempArray, int j, int SlopeType)
 }
 
 // C function to find maximum in arr[] of size n
-double largest(double arr[], int n)
+double largest(cell_state temp_cell_state)
 {
     int i;
-    
+    double c;
     // Initialize maximum element
-    double max = arr[0];
+    i = 0;
+
+    c = abs(sqrt(gamma_val*temp_cell_state.Pressure[i]/temp_cell_state.Density[i]));
+    double max = (abs(temp_cell_state.Velocity[i])) + c;
  
     // Traverse array elements from second and
     // compare every element with current max 
-    for (i = 1; i < n; i++)
-        if (abs(arr[i]) > max)
-            max = arr[i];
+    for (i = 1; i < gridSize; i++)
+        if (abs((temp_cell_state.Velocity[i]) + c) > max)
+            max = abs((temp_cell_state.Velocity[i]) + c);
  
     return max;
+}
+
+//gets the variable time step dt
+double getDT(cell_state temp_cell_state, double courant, double dx)
+{
+    double maxSignalSpeed;
+    double dt;
+
+    maxSignalSpeed = largest(temp_cell_state);
+    dt = dx/(courant * maxSignalSpeed);
+
+    printf("dt was found to be %f\n", dt);
+    system("pause");
+
+    return dt;
 }

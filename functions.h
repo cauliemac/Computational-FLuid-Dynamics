@@ -65,6 +65,9 @@ void GodunovScheme(cell_state temp_cell_state, cell_state* solution_cell_state, 
 //starts the process of the next evolution of the godunov scheme
 double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state, int evolutions, double courant, double dx, interface_cell_state riemann_cell_state);
 
+//gets the variable time step
+double getDT(cell_state temp_cell_state, double courant, double dx);
+
 // C function to find maximum in arr[] of size n
 double largest(double arr[], int n);
 
