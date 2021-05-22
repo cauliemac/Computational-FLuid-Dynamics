@@ -103,7 +103,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //TODO In future versions this height should be a variable
     else
     {
-        printf("Initial Conditions = Square Wave from %d to %d percent of grid", a, b);
+        printf("Initial Conditions = Square Wave from %d to %d percent of grid\n", a, b);
         for (int i=0; i<gridSize; i++)
         {                
             float a_ratio = a*gridSize/100;
@@ -333,7 +333,7 @@ double getDT(cell_state temp_cell_state, double courant, double dx)
     double dt;
 
     maxSignalSpeed = largest(temp_cell_state);
-    dt = dx/(courant * maxSignalSpeed);
+    dt = courant * (dx/maxSignalSpeed);
 
     printf("dt was found to be %f\n", dt);
     system("pause");
