@@ -16,7 +16,7 @@
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
-const float dt = 0.005;  //size of each timestep ( also k)
+float dt = 0.005;  //size of each timestep ( also k)
 double courant = 0.01; //Desired Courant number for printout
 /*
  *double courant is not exactly courant number, 
@@ -127,8 +127,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     //memcpy to copy initial conditions onto the solution array
     memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
     memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
-    //memcpy(solution_cell_state.Velocity, initialConditions, gridSize * sizeof(double));
-    
+        
     fclose(initial_density);
     fclose(initial_pressure);
     fclose(initial_velocity);
@@ -149,28 +148,24 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
     {
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
-        //memcpy(temp_cell_state.Density, solution_cell_state.Density, gridSize * sizeof(double));
-        //memcpy(temp_cell_state.Pressure, solution_cell_state.Pressure, gridSize * sizeof(double));
-        //memcpy(temp_cell_state.Velocity, solution_cell_state.Velocity, gridSize * sizeof(double));
 
         /*
          *Creates a text file for density, momentum, and energy wwith each evolution
          *changes file name with evolution cycle.
+         *Puts "file" then, "i" then, ".txt" in to filename.
          */
-        FILE *densityFile = NULL;
+
         char buffer[256]; // The filename buffer.
-        // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
-        densityFile = fopen(buffer, "w");
-
+        FILE *densityFile = NULL;
         FILE *pressureFile = NULL;
-        // Put "file" then i then ".txt" in to filename.
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
-        pressureFile = fopen(buffer, "w");
-
         FILE *velocityFile = NULL;
-        // Put "file" then i then ".txt" in to filename.
+
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
+
+        densityFile = fopen(buffer, "w");
+        pressureFile = fopen(buffer, "w");
         velocityFile = fopen(buffer, "w");
 
         //calculates the next value of the current cell
@@ -203,21 +198,17 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     int Left, Right;
     double variableTime;
 
-
     //setting the variable courant number using the max wave speed
     //(wave speed * dt)/ dx
     //variableTime = (abs(largest(temp_cell_state.Velocity, sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))) * dt) / dx;
-    /*
-    variableTime = (courant * dx)/(largest(abs(temp_cell_state.Velocity), sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0])));
+    
+    variableTime = (courant * dx)/(largest(temp_cell_state.Velocity, (sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))));
+
     if (largest(temp_cell_state.Velocity, sizeof(temp_cell_state.Velocity)/sizeof(temp_cell_state.Velocity[0]))==0)
     {
         variableTime = 0.05;
     }
-    //TODO fix so that variable is dt
-    //TODO remove these
-    printf("dt for the in grid is %f\n", variableTime);
-    system("pause");
-    */
+    
     variableTime = 0.005;
 
     if (solution_cell_state->Velocity[j] >= 0)
@@ -332,7 +323,7 @@ double largest(double arr[], int n)
     // Traverse array elements from second and
     // compare every element with current max 
     for (i = 1; i < n; i++)
-        if (arr[i] > max)
+        if (abs(arr[i]) > max)
             max = arr[i];
  
     return max;

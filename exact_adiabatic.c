@@ -180,9 +180,6 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 	ur  = temp_cell_state.Velocity[Right]/rhor;//speed right
 	pr =  temp_cell_state.Pressure[Right];// pressure right
 
-	//printf("\nadiflux function started");
-	//TODO
-
   /***************************************************************************
    *                                                                         *
    *                         Linear Riemann solver                           *
