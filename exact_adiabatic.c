@@ -401,7 +401,6 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
      */
     density = wright*rhor/(wright - (u - ur)*rhor);
 
-	 //g5 = gr[5];
 	 c_v = 1.0/(gr-1.0);
     
     /*
@@ -469,7 +468,8 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
   }
   if(isnan(p))// Checks if the pressure is Not A Number (NAN)
   {
-	fprintf(stderr,"Got a nan for p\n");
+	//fprintf(stderr,"Got a nan for p\n");
+	//TODO
 	p = 0.5*(pl + pr);
 	density = 0.5*(rhol + rhor);
 	u = 0.5*(ul + ur);
