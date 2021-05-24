@@ -206,16 +206,15 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
  *to calculate the next value of a gridpoint
 
  */
-void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state, conservative_variables temp_conserve, conservative_variables solution_conserve, int j, double dx, double dt, interface_cell_state riemann_cell_state){
+void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state, conservative_variables temp_conserve, conservative_variables solution_conserve, int j, double dx, double dt, interface_cell_state riemann_cell_state)
+{
 
-    double Godunov;
     double densityLeft, densityRight;
     double pressureLeft, pressureRight;
     double velocityLeft, velocityRight;
     int Left, Right;
-    double variable_dt;
     double sound_speed;
-    double c;
+    double c;//signal speed
     double c_Left, c_right;
 
     double MassLeft, MomentumLeft, EnergyLeft;
@@ -239,10 +238,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
         
-
         //convert primitive variables to conservative variables
         MassLeft = densityLeft * velocityLeft * dx;
-        MomentumLeft = MassLeft * pow(velocityLeft,2) + pressureLeft * dx;
+        MomentumLeft = densityLeft * pow(velocityLeft,2) + pressureLeft * dx;
         EnergyLeft = velocityLeft*(((3*pressureLeft /(2)) + 0.5 * densityLeft * (pow(velocityLeft,2))) + pressureLeft) * dx;
 
         //right cell interfaces
@@ -255,10 +253,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         pressureRight = riemann_cell_state.Pressure;
         velocityRight = riemann_cell_state.Velocity;
         
-
         //convert primitive variables to conservative variables
         MassRight = densityRight * velocityRight * dx;
-        MomentumRight = MassRight * pow(velocityRight,2) + pressureRight * dx;
+        MomentumRight = densityRight * pow(velocityRight,2) + pressureRight * dx;
         EnergyRight = velocityRight*(((3*pressureRight/2) + 0.5 * densityRight * (pow(velocityRight,2)))+ pressureRight) * dx;
 
         //calculate the sound speed and signal speed of the wave
@@ -273,9 +270,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
         solution_cell_state->Velocity[j] = sqrt(solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
-        solution_cell_state->Pressure[j] = (((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2/3));
+        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2/3);
         
-        
+        ///*
         printf("-------------------------------------------------------\n");
         printf("for cell j=%d\n",j);
         printf("-------------------------------------------------------\n");
@@ -305,7 +302,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
         
         system("pause");
-        
+        //*/
 
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
