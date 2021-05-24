@@ -206,9 +206,7 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
   
   if (p<0)
   {
-	//printf("\n\npressure is equal to %f \n",p);
-  	//system("pause");
-	  //TODO
+	printf("\n\npressure is equal to %f \n",p);
   }
 
   //TODO remove this
@@ -216,12 +214,12 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
   if(p<= 0.0)
   {
     //negative pressure cannot exist, so set it to a small number instead
-	//printf("Negative pressure in linear Riemann solver\n");
-    //printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); 
+	printf("Negative pressure in linear Riemann solver\n");
+    printf("p = %f, pl = %f, pr = %f\n",p,pl,pr); 
 	//TODO
 	
     p = 1.0e-06;
-	//printf("new p is %f", p);
+	printf("new p is %f", p);
 	//system("pause");
 	//TODO
   }
