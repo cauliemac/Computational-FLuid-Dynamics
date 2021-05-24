@@ -181,8 +181,8 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         for (int i = 0; i< gridSize; i++)
         {
             temp_conserve.Mass[i] = temp_cell_state.Density[i] * dx;
-            temp_conserve.Momentum[i] = temp_cell_state.Density[i] * pow(temp_cell_state.Velocity[i],2) * dx;
-            temp_conserve.Energy[i] = ((3*temp_cell_state.Pressure[i]/2) + 0.5 * temp_cell_state.Density[i] * (pow(temp_cell_state.Velocity[i],2))) * dx;
+            temp_conserve.Momentum[i] = temp_cell_state.Density[i] * temp_cell_state.Velocity[i] * dx;
+            temp_conserve.Energy[i] = ((temp_cell_state.Pressure[i]/(2.0/3.0)) + 0.5 * temp_cell_state.Density[i] * (pow(temp_cell_state.Velocity[i],2))) * dx;
         }
 
         //calculates the next value of the current cell
@@ -269,7 +269,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
-        solution_cell_state->Velocity[j] = sqrt(solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
+        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j]/solution_cell_state->Density[j] / dx;
         solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2.0/3.0);
         
         /*
