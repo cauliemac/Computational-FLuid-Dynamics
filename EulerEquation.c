@@ -256,7 +256,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         //convert primitive variables to conservative variables
         MassRight = densityRight * velocityRight * dx;
         MomentumRight = densityRight * pow(velocityRight,2) + pressureRight * dx;
-        EnergyRight = velocityRight*(((3*pressureRight/2) + 0.5 * densityRight * (pow(velocityRight,2)))+ pressureRight) * dx;
+        EnergyRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2)))+ pressureRight) * dx;
 
         //calculate the sound speed and signal speed of the wave
         sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
@@ -270,13 +270,12 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
         solution_cell_state->Velocity[j] = sqrt(solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
-        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2/3);
+        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2.0/3.0);
         
-        ///*
-        printf("-------------------------------------------------------\n");
-        printf("for cell j=%d\n",j);
-        printf("-------------------------------------------------------\n");
-
+        /*
+        printf("#######################################################\n");
+        printf("for cell j=%d\n\n",j);
+        
         printf("Density Left is %f\n",densityLeft);
         printf("Density Right is %f\n",densityRight);
         printf("velocity Left is %f\n",velocityLeft);
@@ -291,7 +290,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         printf("Energy Left is %f\n",EnergyLeft);
         printf("Energy Right is %f\n\n",EnergyRight);
 
-        printf("#######################################################\n");
+        printf("---------------------------\n");
         
         printf("solution Mass is %f\n",solution_conserve.Mass[j]);
         printf("solution Momentum is %f\n",solution_conserve.Momentum[j]);
@@ -302,7 +301,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
         
         system("pause");
-        //*/
+        */
 
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
