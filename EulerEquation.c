@@ -49,10 +49,10 @@ double initialConditions[gridSize];
 int main ()
 {   
     //print some useful info to the console
-    printf("grid Spacing: %f\n", dx);
-    printf("time step size: %f\n", dt);
-    printf("evolutions: %d\n", evolutions);
-    printf("Courant number: %f\n", courant);
+    printf("The grid size is %f\n",gridSize);
+    printf("The grid spacing is: %f\n", dx);
+    printf("For %d evolutions\n", evolutions);
+    printf("With a Courant number of %f\n", courant);
 
     //calls the initial conditions function
     getInitialConditions(initialConditions, gridSize, 0, 15, 0);
@@ -121,7 +121,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
                 initialConditions[i] = 0.4;
             }
 
-            init_velocity_mod[i] = 0.1;
+            init_velocity_mod[i] = 1;
             
             //writing files to solution text file
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
@@ -156,39 +156,37 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
          *Creates a text file for density, momentum, and energy wwith each evolution
          *changes file name with evolution cycle.
          *Puts "file" then, "i" then, ".txt" in to filename.
+         *opens files in write mode
          */
 
         char buffer[256]; // The filename buffer.
         FILE *densityFile = NULL;
-        FILE *pressureFile = NULL;
-        FILE *velocityFile = NULL;
-
         snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
-
-        //opens files in write mode
         densityFile = fopen(buffer, "w");
+        FILE *pressureFile = NULL;
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
         pressureFile = fopen(buffer, "w");
+        FILE *velocityFile = NULL; 
+        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
         velocityFile = fopen(buffer, "w");
-
+        
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
         temp_conserve = solution_conserve;
-
+        
         //gets the variable time step dt
         dt = getDT(temp_cell_state, courant, dx);
 
         //sets the values for the conserved variables for the evolution
-        for (int i = 0; i< gridSize; i++)
+        for (int i = 0; i< gridSize+1; i++)
         {
-            temp_conserve.Mass[i] = temp_cell_state.Density[i] * dx;
-            temp_conserve.Momentum[i] = temp_conserve.Mass[i] * temp_cell_state.Velocity[i] * dx;
-            temp_conserve.Energy[i] = (temp_cell_state.Pressure[i] / (gamma_val - 1)) + 0.5 * temp_cell_state.Pressure[i] * (pow(temp_cell_state.Velocity[i],2)) * dx;
+            temp_conserve.Mass[i] = temp_cell_state.Density[i];// * dx;
+            temp_conserve.Momentum[i] = temp_conserve.Mass[i] * temp_cell_state.Velocity[i] ;//* dx;
+            temp_conserve.Energy[i] = (3*temp_cell_state.Pressure[i] / (2)) + 0.5 * temp_cell_state.Pressure[i] * (pow(temp_cell_state.Velocity[i],2));// * dx;
         }
 
         //calculates the next value of the current cell
-        for (int j = 1; j < gridSize-2; j++)
+        for (int j = 2; j < gridSize-2; j++)
         {
             GodunovScheme(temp_cell_state, &solution_cell_state, temp_conserve, solution_conserve, j, dx, dt, riemann_cell_state);
 
@@ -216,6 +214,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     double velocityLeft, velocityRight;
     int Left, Right;
     double variable_dt;
+    double sound_speed;
     double c;
     double c_Left, c_right;
 
@@ -239,11 +238,12 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         densityLeft = riemann_cell_state.Density;
         pressureLeft = riemann_cell_state.Pressure;
         velocityLeft = riemann_cell_state.Velocity;
+        
 
         //convert primitive variables to conservative variables
-        MassLeft = densityLeft * dx;
-        MomentumLeft = MassLeft * velocityLeft * dx;
-        EnergyLeft = (pressureLeft / (gamma_val - 1)) + 0.5 * densityLeft * (pow(velocityLeft,2)) * dx;
+        MassLeft = densityLeft;// * dx;
+        MomentumLeft = MassLeft * velocityLeft;// * dx;
+        EnergyLeft = (3*pressureLeft / (2)) + 0.5 * densityLeft * (pow(velocityLeft,2));// * dx;
 
         //right cell interfaces
         Left = j;
@@ -254,23 +254,56 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
         velocityRight = riemann_cell_state.Velocity;
+        
 
         //convert primitive variables to conservative variables
-        MassRight = densityRight * dx;
-        MomentumRight = MassRight * velocityRight * dx;
-        EnergyRight = (pressureRight / (gamma_val - 1)) + 0.5 * densityRight * (pow(velocityRight,2)) * dx;
+        MassRight = densityRight;// * dx;
+        MomentumRight = MassRight * velocityRight;// * dx;
+        EnergyRight = (3* pressureRight / (2)) + 0.5 * densityRight * (pow(velocityRight,2));// * dx;
 
-        c = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
+        //calculate the sound speed and signal speed of the wave
+        sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
+        c = sound_speed * temp_cell_state.Velocity[j];
     
-        //TODO fix second order part. should be something like u*dx/dt (check leveque)
-        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
-        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
-        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
+        //Use Godunov method to update the value of the cell.
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (c*dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (c*dt/dx) * (MomentumRight - MomentumLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (c*dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
 
         //convert back to primitave variables and return solution_cell_state
-        solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
-        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j] / solution_cell_state->Density[j] / dx;
-        solution_cell_state->Pressure[j] = (solution_conserve.Energy[j]/dx - 0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2)) * (gamma_val-1);
+        solution_cell_state->Density[j] = solution_conserve.Mass[j];// / dx;
+        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j] / solution_cell_state->Density[j];// / dx;
+        solution_cell_state->Pressure[j] = (solution_conserve.Energy[j]/*dx*/ - 0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2)) * (2/3);
+
+        printf("-------------------------------------------------------\n");
+        printf("for cell j=%d\n",j);
+        printf("-------------------------------------------------------\n");
+
+        printf("Mass Left is %f\n",MassLeft);
+        printf("Mass Right is %f\n",MassRight);
+        printf("solution Mass is %f\n\n",solution_conserve.Mass[j]);
+
+        printf("Momentum Left is %f\n",MomentumLeft);
+        printf("Momentum Right is %f\n",MomentumRight);
+        printf("solution Momentum is %f\n\n",solution_conserve.Momentum[j]);
+
+        printf("Energy Left is %f\n",EnergyLeft);
+        printf("Energy Right is %f\n",EnergyRight);
+        printf("solution energy is %f\n",solution_conserve.Energy[j]);
+
+        printf("Density Left is %f\n",densityLeft);
+        printf("Density Right is %f\n",densityRight);
+        printf("Density Solution is %f\n\n",solution_cell_state->Density[j]);
+
+        printf("velocity Left is %f\n",velocityLeft);
+        printf("velocity Right is %f\n",velocityRight);
+        printf("velocity Solution is %f\n\n",solution_cell_state->Velocity[j]);
+
+        printf("Pressure Left is %f\n",pressureLeft);
+        printf("Pressure Right is %f\n",pressureRight);
+        printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
+        
+        system("pause");
 
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
@@ -309,13 +342,14 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         MomentumRight = MassRight * velocityRight * dx;
         EnergyRight = (pressureRight / (gamma_val - 1)) + 0.5 * densityRight * (pow(velocityRight,2)) * dx;
 
-        //uses Godunov to calculate the Mass/Momentum/Energy Flux from a cell
-        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
-        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
-        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
+        //calculate the sound speed and signal speed of the wave
+        sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
+        c = sound_speed * temp_cell_state.Velocity[j];
 
-        //printf("solution Mass is %f\n",solution_conserve.Mass[j]);
-        //system("pause");
+        //uses Godunov to calculate the Mass/Momentum/Energy Flux from a cell
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (c*dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (c*dt/dx) * (MomentumRight - MomentumLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (c*dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
 
         //convert back to primitave variables
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;

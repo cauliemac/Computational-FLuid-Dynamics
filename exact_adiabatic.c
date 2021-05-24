@@ -173,11 +173,11 @@ void adiflux(cell_state temp_cell_state, int Left, int Right, double dx, double 
 
 	//rhol= (*temp_cell_state).Density[Left];//rho left (density ρ)
 	rhol= temp_cell_state.Density[Left];//rho left (density ρ)
-	ul  = temp_cell_state.Velocity[Left]/rhol;//speed left
+	ul  = temp_cell_state.Velocity[Left];///rhol;//speed left//TODO
 	pl =  temp_cell_state.Pressure[Left];// pressure left
 
 	rhor= temp_cell_state.Density[Right];//rho right (density ρ)
-	ur  = temp_cell_state.Velocity[Right]/rhor;//speed right
+	ur  = temp_cell_state.Velocity[Right];//rhor;//speed right//TODO
 	pr =  temp_cell_state.Pressure[Right];// pressure right
 
   /***************************************************************************
