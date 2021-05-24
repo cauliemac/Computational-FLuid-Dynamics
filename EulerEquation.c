@@ -121,7 +121,7 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
                 initialConditions[i] = 2;
             }
 
-            init_velocity_mod[i] = 0.1;
+            init_velocity_mod[i] = 0.5;
             
             //writing files to solution text file
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
@@ -263,13 +263,13 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         c = sound_speed * temp_cell_state.Velocity[j];//signal speed
 
         //Use Godunov method to update the value of the cell.
-        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (c*dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
-        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - ((c*dt/dx) * (MomentumRight - MomentumLeft)) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
-        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (c*dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
 
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
-        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j]/solution_cell_state->Density[j] / dx;
+        solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
         solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2.0/3.0);
         
         /*
