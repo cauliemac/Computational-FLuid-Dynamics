@@ -16,11 +16,10 @@
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
 const int evolutions = 100;  //number of evolutions
-float dt = 0.005;  //size of each timestep ( also k)
-double courant = 0.01; //Desired Courant number for printout
+double dt = 0.005;  //size of each timestep ( also k)
+double courant = 0.2; //Desired Courant number for printout
 /*
- *double courant is not exactly courant number, 
- *should be (wave speed * timestep)/ dx
+ *Cournant number is C = (wave speed * timestep)/ dx
  */
 float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
@@ -157,7 +156,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
          *changes file name with evolution cycle.
          *Puts "file" then, "i" then, ".txt" in to filename.
          *opens files in write mode
-         */
+        */
 
         char buffer[256]; // The filename buffer.
         FILE *densityFile = NULL;
@@ -190,9 +189,14 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         {
             GodunovScheme(temp_cell_state, &solution_cell_state, temp_conserve, solution_conserve, j, dx, dt, riemann_cell_state);
 
-            fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
-            fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
-            fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
+            if(i%1 == 0)
+            {
+                fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
+                fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
+                fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
+            }
+
+            
         }
         fclose(densityFile);
         fclose(pressureFile);
