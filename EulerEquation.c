@@ -181,7 +181,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         {
             temp_conserve.Mass[i] = temp_cell_state.Density[i] * dx;
             temp_conserve.Momentum[i] = temp_cell_state.Density[i] * temp_cell_state.Velocity[i] * dx;
-            temp_conserve.Energy[i] = ((temp_cell_state.Pressure[i]/(2.0/3.0)) + 0.5 * temp_cell_state.Density[i] * (pow(temp_cell_state.Velocity[i],2))) * dx;
+            temp_conserve.Energy[i] = ((temp_cell_state.Pressure[i]/(2.0/3.0)) + 0.5 * temp_cell_state.Density[i] * (pow(temp_cell_state.Velocity[i],2.0))) * dx;
         }
 
         //calculates the next value of the current cell
@@ -221,8 +221,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     double c;//signal speed
     double c_Left, c_right;
 
-    double MassLeft, MomentumLeft, EnergyLeft;
-    double MassRight, MomentumRight, EnergyRight;
+    double MassFluxLeft, MomentumFluxLeft, EnergyFluxLeft;
+    double MassFluxRight, MomentumFluxRight, EnergyFluxRight;
 
     if (solution_cell_state->Velocity[j] >= 0)
     {
@@ -243,9 +243,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         velocityLeft = riemann_cell_state.Velocity;
         
         //convert primitive variables to conservative variables
-        MassLeft = densityLeft * velocityLeft * dx;
-        MomentumLeft = densityLeft * pow(velocityLeft,2) + pressureLeft * dx;
-        EnergyLeft = velocityLeft*(((3*pressureLeft /(2)) + 0.5 * densityLeft * (pow(velocityLeft,2))) + pressureLeft) * dx;
+        MassFluxLeft = densityLeft * velocityLeft * dx;
+        MomentumFluxLeft = densityLeft * pow(velocityLeft,2.0) + pressureLeft * dx;
+        EnergyFluxLeft = velocityLeft*(((3.0*pressureLeft /(2.0)) + 0.5 * densityLeft * (pow(velocityLeft,2.0))) + pressureLeft) * dx;
 
         //right cell interfaces
         Left = j;
@@ -258,23 +258,24 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         velocityRight = riemann_cell_state.Velocity;
         
         //convert primitive variables to conservative variables
-        MassRight = densityRight * velocityRight * dx;
-        MomentumRight = densityRight * pow(velocityRight,2) + pressureRight * dx;
-        EnergyRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2)))+ pressureRight) * dx;
+        MassFluxRight = densityRight * velocityRight * dx;
+        MomentumFluxRight = densityRight * pow(velocityRight,2.0) + pressureRight * dx;
+        EnergyFluxRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2.0)))+ pressureRight) * dx;
 
         //calculate the sound speed and signal speed of the wave
         sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
-        c = sound_speed * temp_cell_state.Velocity[j];//signal speed
+        c = sound_speed * temp_cell_state.Velocity[j];
+        //c = signal speed
 
         //Use Godunov method to update the value of the cell.
-        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassRight - MassLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
-        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumRight - MomentumLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
-        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyRight - EnergyLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassFluxRight - MassFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumFluxRight - MomentumFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyFluxRight - EnergyFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
 
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
         solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
-        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2))) * (2.0/3.0);
+        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2.0))) * (2.0/3.0);
         
         /*
         printf("#######################################################\n");
@@ -324,9 +325,9 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         velocityLeft = riemann_cell_state.Velocity;
 
         //convert primitive variables to conservative variables
-        MassLeft = densityLeft * dx;
-        MomentumLeft = MassLeft * velocityLeft * dx;
-        EnergyLeft = (pressureLeft / (gamma_val - 1)) + 0.5 * densityLeft * (pow(velocityLeft,2)) * dx;
+        MassFluxLeft = densityLeft * velocityLeft * dx;
+        MomentumFluxLeft = densityLeft * pow(velocityLeft,2.0) + pressureLeft * dx;
+        EnergyFluxLeft = velocityLeft*(((3.0*pressureLeft /(2.0)) + 0.5 * densityLeft * (pow(velocityLeft,2.0))) + pressureLeft) * dx;
 
         //right cell interfaces
         Left = j+1;
@@ -337,27 +338,27 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         densityRight = riemann_cell_state.Density;
         pressureRight = riemann_cell_state.Pressure;
         velocityRight = riemann_cell_state.Velocity;
-        //TODO THIS NEEDS TO BE FIXED
 
         //convert primitive variables to conservative variables
-        MassRight = densityRight * dx;
-        MomentumRight = MassRight * velocityRight * dx;
-        EnergyRight = (pressureRight / (gamma_val - 1)) + 0.5 * densityRight * (pow(velocityRight,2)) * dx;
+        MassFluxRight = densityRight * velocityRight * dx;
+        MomentumFluxRight = densityRight * pow(velocityRight,2.0) + pressureRight * dx;
+        EnergyFluxRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2.0)))+ pressureRight) * dx;
 
         //calculate the sound speed and signal speed of the wave
         sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
         c = sound_speed * temp_cell_state.Velocity[j];
+        //c = signal speed
 
-        //uses Godunov to calculate the Mass/Momentum/Energy Flux from a cell
-        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (c*dt/dx) * (MassRight - MassLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
-        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (c*dt/dx) * (MomentumRight - MomentumLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
-        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (c*dt/dx) * (EnergyRight - EnergyLeft) - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
+        //Use Godunov method to update the value of the cell.
+        solution_conserve.Mass[j] = temp_conserve.Mass[j] - (dt/dx) * (MassFluxRight - MassFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Mass,j,slope_limiter_type));
+        solution_conserve.Momentum[j] = temp_conserve.Momentum[j] - (dt/dx) * (MomentumFluxRight - MomentumFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Momentum,j,slope_limiter_type));
+        solution_conserve.Energy[j] = temp_conserve.Energy[j] - (dt/dx) * (EnergyFluxRight - EnergyFluxLeft);// - 0.5 * (c*dt/dx) * (dx - c*dt)*(chooseSlopeLimiter(temp_conserve.Energy,j,slope_limiter_type));
 
         //convert back to primitave variables
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
-        solution_cell_state->Velocity[j] = solution_conserve.Momentum[j] / solution_cell_state->Density[j] / dx;
-        solution_cell_state->Pressure[j] = (solution_conserve.Energy[j]/dx - 0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2)) * (gamma_val-1);
-
+        solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
+        solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2.0))) * (2.0/3.0);
+        
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
         //Equation of state = u*(E + p)
