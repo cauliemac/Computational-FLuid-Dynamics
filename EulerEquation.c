@@ -23,6 +23,7 @@ double courant = 0.2; //Desired Courant number for printout
  */
 float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
+int file_skipper = 5; //only prints every n files
 
 cell_state temp_cell_state, solution_cell_state;
 interface_cell_state riemann_cell_state;
@@ -158,16 +159,19 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
          *opens files in write mode
         */
 
-        char buffer[256]; // The filename buffer.
-        FILE *densityFile = NULL;
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
-        densityFile = fopen(buffer, "w");
-        FILE *pressureFile = NULL;
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
-        pressureFile = fopen(buffer, "w");
-        FILE *velocityFile = NULL; 
-        snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
-        velocityFile = fopen(buffer, "w");      
+        if(i%file_skipper == 0)
+        {
+            char buffer[256]; // The filename buffer.
+            FILE *densityFile = NULL;
+            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
+            densityFile = fopen(buffer, "w");
+            FILE *pressureFile = NULL;
+            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
+            pressureFile = fopen(buffer, "w");
+            FILE *velocityFile = NULL; 
+            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
+            velocityFile = fopen(buffer, "w");
+        }
         
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
@@ -189,7 +193,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         {
             GodunovScheme(temp_cell_state, &solution_cell_state, temp_conserve, solution_conserve, j, dx, dt, riemann_cell_state);
 
-            if(i%1 == 0)
+            if(i%file_skipper == 0)
             {
                 fprintf(densityFile, "%i \t %f\n", j, solution_cell_state.Density[j]);
                 fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
@@ -198,9 +202,13 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 
             
         }
-        fclose(densityFile);
-        fclose(pressureFile);
-        fclose(velocityFile);
+        
+        if(i%file_skipper == 0)
+        {
+            fclose(densityFile);
+            fclose(pressureFile);
+            fclose(velocityFile);
+        }
     }
     return 0;
 }
