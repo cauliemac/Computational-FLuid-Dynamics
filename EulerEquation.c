@@ -159,19 +159,20 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
          *opens files in write mode
         */
 
-        if(i%file_skipper == 0)
-        {
-            char buffer[256]; // The filename buffer.
-            FILE *densityFile = NULL;
-            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
-            densityFile = fopen(buffer, "w");
-            FILE *pressureFile = NULL;
-            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
-            pressureFile = fopen(buffer, "w");
-            FILE *velocityFile = NULL; 
-            snprintf(buffer, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
-            velocityFile = fopen(buffer, "w");
-        }
+        //if(i%file_skipper == 0)
+        char buffer_density[256]; // The filename buffer.
+        char buffer_pressure[256];
+        char buffer_velocity[256];
+
+        FILE *densityFile = NULL;
+        snprintf(buffer_density, sizeof(char) * 256, "EulerEquation_1D_results/EulerDensitySolution%i.txt", i);
+        densityFile = fopen(buffer_density, "w");
+        FILE *pressureFile = NULL;
+        snprintf(buffer_pressure, sizeof(char) * 256, "EulerEquation_1D_results/EulerPressureSolution%i.txt", i);
+        pressureFile = fopen(buffer_pressure, "w");
+        FILE *velocityFile = NULL; 
+        snprintf(buffer_velocity, sizeof(char) * 256, "EulerEquation_1D_results/EulerVelocitySolution%i.txt", i);
+        velocityFile = fopen(buffer_velocity, "w");
         
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
@@ -202,13 +203,21 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
 
             
         }
-        
-        if(i%file_skipper == 0)
+
+        fclose(densityFile);
+        fclose(pressureFile);
+        fclose(velocityFile);
+
+
+        if(i%file_skipper != 0)
         {
-            fclose(densityFile);
-            fclose(pressureFile);
-            fclose(velocityFile);
+            remove(buffer_pressure);
+            remove(buffer_density);
+            remove(buffer_velocity);
+            printf("deleted");
         }
+
+        
     }
     return 0;
 }
