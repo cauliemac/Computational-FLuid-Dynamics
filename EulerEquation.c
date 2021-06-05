@@ -15,15 +15,15 @@
 
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
-const int evolutions = 5000;  //number of evolutions
+const int evolutions = 500;  //number of evolutions
 double dt = 0.005;  //size of each timestep ( also k)
-double courant = 0.5; //Desired Courant number for printout
+double courant = 0.05; //Desired Courant number for printout
 /*
  *Cournant number is C = (wave speed * timestep)/ dx
  */
 float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
-int file_skipper = 50; //only prints every n files
+int file_skipper = 1; //only prints every n files
 
 cell_state temp_cell_state, solution_cell_state;
 interface_cell_state riemann_cell_state;
@@ -36,10 +36,6 @@ double initialVelocity[gridSize];
 
 //declaring the functions
 double initialConditions[gridSize];
-
-//Calculates the resolved state given the left and right states.
-//void adiflux cell_state temp_cell_state, int Left, int Right, double dx, double dt, interface_cell_state riemann_cell_state);
-//TODO redo this as a void 
 
 /*
  *Prints some useful info to the console
@@ -354,8 +350,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         //convert primitive variables to conservative variables
         MassFluxRight = densityRight * velocityRight * dx;
-        MomentumFluxRight = densityRight * pow(velocityRight,2.0) + pressureRight * dx;
-        EnergyFluxRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2.0)))+ pressureRight) * dx;
+        MomentumFluxRight = (densityRight * pow(velocityRight,2.0) + pressureRight) * dx;
+        EnergyFluxRight = (velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2.0)))+ pressureRight)) * dx;
 
         //calculate the sound speed and signal speed of the wave
         sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
