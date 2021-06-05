@@ -15,15 +15,15 @@
 
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
-const int evolutions = 100;  //number of evolutions
+const int evolutions = 5000;  //number of evolutions
 double dt = 0.005;  //size of each timestep ( also k)
-double courant = 0.2; //Desired Courant number for printout
+double courant = 0.5; //Desired Courant number for printout
 /*
  *Cournant number is C = (wave speed * timestep)/ dx
  */
 float gamma_val = 5/3;
 const int slope_limiter_type = 1;   //1 for MC, 2 for Minmod, 3 for Van Albada 1
-int file_skipper = 5; //only prints every n files
+int file_skipper = 50; //only prints every n files
 
 cell_state temp_cell_state, solution_cell_state;
 interface_cell_state riemann_cell_state;
@@ -185,7 +185,7 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         for (int i = 0; i< gridSize; i++)
         {
             temp_conserve.Mass[i] = temp_cell_state.Density[i] * dx;
-            temp_conserve.Momentum[i] = temp_cell_state.Density[i] * temp_cell_state.Velocity[i] * dx;
+            temp_conserve.Momentum[i] = temp_conserve.Mass[i] * temp_cell_state.Velocity[i];
             temp_conserve.Energy[i] = ((temp_cell_state.Pressure[i]/(2.0/3.0)) + 0.5 * temp_cell_state.Density[i] * (pow(temp_cell_state.Velocity[i],2.0))) * dx;
         }
 
@@ -200,24 +200,18 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
                 fprintf(pressureFile, "%i \t %f\n", j, solution_cell_state.Pressure[j]);
                 fprintf(velocityFile, "%i \t %f\n", j, solution_cell_state.Velocity[j]);
             }
-
-            
         }
 
         fclose(densityFile);
         fclose(pressureFile);
         fclose(velocityFile);
 
-
         if(i%file_skipper != 0)
         {
             remove(buffer_pressure);
             remove(buffer_density);
             remove(buffer_velocity);
-            printf("deleted");
         }
-
-        
     }
     return 0;
 }
@@ -261,8 +255,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         
         //convert primitive variables to conservative variables
         MassFluxLeft = densityLeft * velocityLeft * dx;
-        MomentumFluxLeft = densityLeft * pow(velocityLeft,2.0) + pressureLeft * dx;
-        EnergyFluxLeft = velocityLeft*(((3.0*pressureLeft /(2.0)) + 0.5 * densityLeft * (pow(velocityLeft,2.0))) + pressureLeft) * dx;
+        MomentumFluxLeft =  (densityLeft * pow(velocityLeft, 2.0) + pressureLeft) * dx;
+        EnergyFluxLeft = (velocityLeft*(((3.0*pressureLeft /(2.0)) + 0.5 * densityLeft * (pow(velocityLeft, 2.0))) + pressureLeft)) * dx;
 
         //right cell interfaces
         Left = j;
@@ -276,8 +270,8 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         
         //convert primitive variables to conservative variables
         MassFluxRight = densityRight * velocityRight * dx;
-        MomentumFluxRight = densityRight * pow(velocityRight,2.0) + pressureRight * dx;
-        EnergyFluxRight = velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight,2.0)))+ pressureRight) * dx;
+        MomentumFluxRight = (densityRight * pow(velocityRight, 2.0) + pressureRight) * dx;
+        EnergyFluxRight = (velocityRight*(((pressureRight/(2.0/3.0)) + 0.5 * densityRight * (pow(velocityRight, 2.0)))+ pressureRight)) * dx;
 
         //calculate the sound speed and signal speed of the wave
         sound_speed = abs(sqrt(gamma_val*temp_cell_state.Pressure[j]/temp_cell_state.Density[j]));
@@ -291,39 +285,40 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
 
         //convert back to primitave variables and return solution_cell_state
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
-        solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/solution_cell_state->Density[j]) / dx;
+        solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/(solution_cell_state->Density[j])) / dx;
         solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2.0))) * (2.0/3.0);
         
-        /*
-        printf("#######################################################\n");
-        printf("for cell j=%d\n\n",j);
         
-        printf("Density Left is %f\n",densityLeft);
-        printf("Density Right is %f\n",densityRight);
-        printf("velocity Left is %f\n",velocityLeft);
-        printf("velocity Right is %f\n",velocityRight);
-        printf("Pressure Left is %f\n",pressureLeft);
-        printf("Pressure Right is %f\n\n",pressureRight);
+        // printf("#######################################################\n");
+        // printf("for cell j=%d\n\n",j);
         
-        printf("Mass Left is %f\n",MassLeft);
-        printf("Mass Right is %f\n",MassRight);
-        printf("Momentum Left is %f\n",MomentumLeft);
-        printf("Momentum Right is %f\n",MomentumRight);
-        printf("Energy Left is %f\n",EnergyLeft);
-        printf("Energy Right is %f\n\n",EnergyRight);
+        // // printf("Density Left is %f\n",densityLeft);
+        // // printf("Density Right is %f\n",densityRight);
+        // printf("velocity Left is %f\n",velocityLeft);
+        // printf("velocity Right is %f\n",velocityRight);
+        // // printf("Pressure Left is %f\n",pressureLeft);
+        // // printf("Pressure Right is %f\n\n",pressureRight);
+        
+        // printf("Mass Left is %f\n",MassFluxLeft);
+        // printf("Mass Right is %f\n",MassFluxRight);
+        // printf("Momentum Left is %f\n",MomentumFluxLeft);
+        // printf("Momentum Right is %f\n",MomentumFluxRight);
+        // // printf("Energy Left is %f\n",EnergyFluxLeft);
+        // // printf("Energy Right is %f\n\n",EnergyFluxRight);
 
-        printf("---------------------------\n");
+        // printf("---------------------------\n");
         
-        printf("solution Mass is %f\n",solution_conserve.Mass[j]);
-        printf("solution Momentum is %f\n",solution_conserve.Momentum[j]);
-        printf("solution energy is %f\n\n",solution_conserve.Energy[j]);
+        // printf("solution Mass is %f\n",solution_conserve.Mass[j]);
+        // printf("temporary conseve momentum is %f\n",temp_conserve.Momentum[j]);
+        // printf("solution Momentum is %f\n",solution_conserve.Momentum[j]);
+        // // printf("solution energy is %f\n\n",solution_conserve.Energy[j]);
         
-        printf("Density Solution is %f\n",solution_cell_state->Density[j]);
-        printf("velocity Solution is %f\n",solution_cell_state->Velocity[j]);
-        printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
+        // printf("Density Solution is %f\n",solution_cell_state->Density[j]);
+        // printf("velocity Solution is %f\n",solution_cell_state->Velocity[j]);
+        // // printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
         
-        system("pause");
-        */
+        // system("pause");
+        
 
         //Conservation of Momentum = rho*u
         //Conservation of Energy = (rho * u^2) + p
@@ -411,14 +406,22 @@ double largest(cell_state temp_cell_state)
     // Initialize maximum element
     i = 0;
 
-    c = abs(sqrt(gamma_val*temp_cell_state.Pressure[i]/temp_cell_state.Density[i]));
+    c = sqrt(abs(gamma_val*temp_cell_state.Pressure[i]/temp_cell_state.Density[i]));
     double max = (abs(temp_cell_state.Velocity[i])) + c;
  
     // Traverse array elements from second and
     // compare every element with current max 
-    for (i = 1; i < gridSize; i++)
+    for (i = 0; i < gridSize; i++)
+    {
+        c = sqrt(abs(gamma_val*temp_cell_state.Pressure[i]/temp_cell_state.Density[i]));
+
         if (abs((temp_cell_state.Velocity[i]) + c) > max)
+        {
             max = abs((temp_cell_state.Velocity[i]) + c);
+        }
+    }
+    // printf("max velocity is %f",max);
+    // system("pause");
  
     return max;
 }
