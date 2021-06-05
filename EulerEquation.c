@@ -55,7 +55,8 @@ int main ()
     printf("With a Courant number of %f\n", courant);
 
     //calls the initial conditions function
-    getInitialConditions(initialConditions, gridSize, 0, 15, 0);
+    //(array, percent a, percent b, is sine?)
+    getInitialConditions(initialConditions, gridSize, 0, 50, 0);
 
     Sleep(2000);
 
@@ -114,14 +115,14 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 
             if (i >= a_ratio && i <= b_ratio)   
             {
-                initialConditions[i] = 2.5;
+                initialConditions[i] = 3;
             }
             else
             {
-                initialConditions[i] = 2;
+                initialConditions[i] = 1;
             }
 
-            init_velocity_mod[i] = 0.5;
+            init_velocity_mod[i] = 0;
             
             //writing files to solution text file
             fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
