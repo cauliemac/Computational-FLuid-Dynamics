@@ -15,9 +15,9 @@
 
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
-const int evolutions = 500;  //number of evolutions
+const int evolutions = 100;  //number of evolutions
 double dt = 0.005;  //size of each timestep ( also k)
-double courant = 0.05; //Desired Courant number for printout
+double courant = 0.5; //Desired Courant number for printout
 /*
  *Cournant number is C = (wave speed * timestep)/ dx
  */
@@ -86,6 +86,8 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
     initial_velocity = fopen("EulerEquation_1D_results/_EulerInitialVelocity.txt", "w");
 
     double init_velocity_mod[gridSize];
+    double init_density_mod[gridSize];
+    double init_pressure_mod[gridSize];
     
     //populates array with one wavelength sine wave
     if (is_sine == 1)
@@ -94,9 +96,9 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
         for (int i=0; i<gridSize; i++)
         {
             initialConditions[i] = sin(2*i/(gridSize/M_PI));
-            fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
-            fprintf(initial_pressure, " %i \t %f\n", i, initialConditions[i]);
-            fprintf(initial_velocity, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_density, " %i \t %f\n", i, init_density_mod[i]);
+            fprintf(initial_pressure, " %i \t %f\n", i, init_pressure_mod[i]);
+            fprintf(initial_velocity, " %i \t %f\n", i, init_velocity_mod[i]);
         }
     }
     //populates the area between a and b (as percentages of the grid) with height 2
@@ -111,24 +113,26 @@ static double getInitialConditions(double *initialConditions, int grid, int a, i
 
             if (i >= a_ratio && i <= b_ratio)   
             {
-                initialConditions[i] = 3;
+                init_density_mod[i] = 3;
+                init_pressure_mod[i] = 3;
+                init_velocity_mod[i] = 0;
             }
             else
             {
-                initialConditions[i] = 1;
+                init_density_mod[i] = 1;
+                init_pressure_mod[i] = 1;
+                init_velocity_mod[i] = 0;
             }
-
-            init_velocity_mod[i] = 0;
             
             //writing files to solution text file
-            fprintf(initial_density, " %i \t %f\n", i, initialConditions[i]);
-            fprintf(initial_pressure, " %i \t %f\n", i, initialConditions[i]);
+            fprintf(initial_density, " %i \t %f\n", i, init_density_mod[i]);
+            fprintf(initial_pressure, " %i \t %f\n", i, init_pressure_mod[i]);
             fprintf(initial_velocity, " %i \t %f\n", i, init_velocity_mod[i]); //velocity is 0
         }
     }
     //memcpy to copy initial conditions onto the solution array
-    memcpy(solution_cell_state.Density, initialConditions, gridSize * sizeof(double));
-    memcpy(solution_cell_state.Pressure, initialConditions, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Density, init_density_mod, gridSize * sizeof(double));
+    memcpy(solution_cell_state.Pressure, init_pressure_mod, gridSize * sizeof(double));
     memcpy(solution_cell_state.Velocity, init_velocity_mod, gridSize * sizeof(double));
 
     fclose(initial_density);
