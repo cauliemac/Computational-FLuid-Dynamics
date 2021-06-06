@@ -54,7 +54,7 @@ int main ()
     //(array, percent a, percent b, is sine?)
     getInitialConditions(initialConditions, gridSize, 0, 50, 0);
 
-    Sleep(2000);
+    Sleep(1000);
 
     //call AllEvolutions to run
     AllEvolutions(solution_cell_state, temp_cell_state, evolutions, courant, dx, riemann_cell_state);
@@ -437,3 +437,5 @@ double getDT(cell_state temp_cell_state, double courant, double dx)
 
     return dt;
 }
+
+//The End
