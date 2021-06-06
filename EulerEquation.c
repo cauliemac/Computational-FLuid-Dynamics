@@ -59,11 +59,6 @@ int main ()
     //call AllEvolutions to run
     AllEvolutions(solution_cell_state, temp_cell_state, evolutions, courant, dx, riemann_cell_state);
    
-    for(int i=0; i<=100; ++i)
-    {
-        printf("\r[%3d%%]",i);
-        //Sleep(10);
-    } 
     printf("\n");
     system("pause");
     return 0;
@@ -160,7 +155,6 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
          *opens files in write mode
         */
 
-        //if(i%file_skipper == 0)
         char buffer_density[256]; // The filename buffer.
         char buffer_pressure[256];
         char buffer_velocity[256];
@@ -177,7 +171,6 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
         
         //copies the solutions array onto the temp array
         temp_cell_state = solution_cell_state;
-        //temp_conserve = solution_conserve;
         
         //gets the variable time step dt
         dt = getDT(temp_cell_state, courant, dx);
@@ -213,6 +206,11 @@ double AllEvolutions(cell_state solution_cell_state, cell_state temp_cell_state,
             remove(buffer_density);
             remove(buffer_velocity);
         }
+
+        int percent;
+        percent = (i*100)/evolutions;
+        printf("\r[%3d%%] \t",percent);
+        Sleep(20);
     }
     return 0;
 }
@@ -231,7 +229,6 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
     int Left, Right;
     double sound_speed;
     double c;//signal speed
-    double c_Left, c_right;
 
     double MassFluxLeft, MomentumFluxLeft, EnergyFluxLeft;
     double MassFluxRight, MomentumFluxRight, EnergyFluxRight;
@@ -289,7 +286,7 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/(solution_cell_state->Density[j])) / dx;
         solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2.0))) * (2.0/3.0);
         
-        
+        //print statements for troubleshooting
         // printf("#######################################################\n");
         // printf("for cell j=%d\n\n",j);
         
@@ -437,7 +434,6 @@ double getDT(cell_state temp_cell_state, double courant, double dx)
     dt = courant * (dx/maxSignalSpeed);
 
     printf("dt was found to be %f\n", dt);
-    //system("pause");
 
     return dt;
 }
