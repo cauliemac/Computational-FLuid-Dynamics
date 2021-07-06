@@ -10,14 +10,16 @@ Thomas McCarthy
 */
 
 //the main function
-int main(int *argc, char *argc[])
+int main(int *argc, char *argv[])
 {
     //specify the block to be computed in parallel
-    #pragma omp parallel
+    
+    #pragma omp parallel num_threads(8)
     {
         //print hello world on each thread
-        printf{"Hello world\n"};
+        printf("Hello world\n");
 
     }
+    system("pause");
     return 0;
 }
