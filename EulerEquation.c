@@ -5,13 +5,14 @@
 #include <Windows.h>
 #include "functions.h"
 
-/**************************************************************
- *  1D implimentation of Euler's Equations of Gas Dynamics    *
- *                                                            *
- *  g++ EulerEquation.c SlopeLimiters.c -o EulerEquation      *
- *  use line above to compile from multiple .c files          *
- *                                                            *
- **************************************************************/
+/**************************************************************************************
+ *  1D implimentation of Euler's Equations of Gas Dynamics                            *
+ *                                                                                    *
+ *  g++ EulerEquation.c exact_adiabatic.c wave.c SlopeLimiters.c -o EulerEquation     *
+ *  use line above to compile from multiple .c files                                  *
+ *                                                                                    *
+ *************************************************************************************/
+
 
 // declare starting variables
 const double dx = 2.0 / (gridSize);   //grid spacing ( also h)
@@ -285,42 +286,6 @@ void GodunovScheme (cell_state temp_cell_state, cell_state* solution_cell_state,
         solution_cell_state->Density[j] = solution_conserve.Mass[j] / dx;
         solution_cell_state->Velocity[j] = (solution_conserve.Momentum[j]/(solution_cell_state->Density[j])) / dx;
         solution_cell_state->Pressure[j] = ((solution_conserve.Energy[j]/dx) - (0.5 * solution_cell_state->Density[j] * pow(solution_cell_state->Velocity[j],2.0))) * (2.0/3.0);
-        
-        //print statements for troubleshooting
-        // printf("#######################################################\n");
-        // printf("for cell j=%d\n\n",j);
-        
-        // // printf("Density Left is %f\n",densityLeft);
-        // // printf("Density Right is %f\n",densityRight);
-        // printf("velocity Left is %f\n",velocityLeft);
-        // printf("velocity Right is %f\n",velocityRight);
-        // // printf("Pressure Left is %f\n",pressureLeft);
-        // // printf("Pressure Right is %f\n\n",pressureRight);
-        
-        // printf("Mass Left is %f\n",MassFluxLeft);
-        // printf("Mass Right is %f\n",MassFluxRight);
-        // printf("Momentum Left is %f\n",MomentumFluxLeft);
-        // printf("Momentum Right is %f\n",MomentumFluxRight);
-        // // printf("Energy Left is %f\n",EnergyFluxLeft);
-        // // printf("Energy Right is %f\n\n",EnergyFluxRight);
-
-        // printf("---------------------------\n");
-        
-        // printf("solution Mass is %f\n",solution_conserve.Mass[j]);
-        // printf("temporary conseve momentum is %f\n",temp_conserve.Momentum[j]);
-        // printf("solution Momentum is %f\n",solution_conserve.Momentum[j]);
-        // // printf("solution energy is %f\n\n",solution_conserve.Energy[j]);
-        
-        // printf("Density Solution is %f\n",solution_cell_state->Density[j]);
-        // printf("velocity Solution is %f\n",solution_cell_state->Velocity[j]);
-        // // printf("Pressure Solution is %f\n\n",solution_cell_state->Pressure[j]);
-        
-        // system("pause");
-        
-
-        //Conservation of Momentum = rho*u
-        //Conservation of Energy = (rho * u^2) + p
-        //Equation of state = u*(E + p)
     }
     else
     {
